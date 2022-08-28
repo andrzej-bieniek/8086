@@ -1,0 +1,57 @@
+TABELA - rekord opisuj¥cy partycj©
+
+Nazwa pola	Dˆugo˜† (w bajtach)	Uwagi
+
+Flaga aktywno˜ci	1	80h=aktywna, 00h=nieaktywna
+
+Pozycja pocz¥tkowa:		
+
+gˆowica	1	
+
+sektor	1	
+
+cylinder	1	
+
+Rodzaj partycji	1	00h - nieu¾ywana
+
+		01h - DOS 12
+
+		02h - XENIX
+
+		03h - XENIX
+
+		04h - DOS 16
+
+		05h - EXTEND
+
+		06h - BIGDOS
+
+		0Ah - BOOT MANAGER
+
+		50h - DISK MANAGER (DM)
+
+		51h - DISK MANAGER (DM)
+
+		53h - DISK MANAGER (DM)
+
+		63h - UNIX
+
+		64h - NET286
+
+		65h - NET386
+
+		DBh - CP/M
+
+Pozycja koäcowa:		
+
+gˆowica	1	
+
+sektor	1	
+
+cylinder	1	
+
+Liczba sektor¢w (relatywnie)	4
+
+Liczba sektor¢w (og¢lnie)	4
+
+

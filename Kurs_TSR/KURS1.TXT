@@ -1,0 +1,123 @@
+                MINI KURS PISANIA PROGRAMÓW TSR W ASEMBLERZE
+
+
+1. PODSTAWY JÊZYKOWE NASZYCH PRZYK£ADOWYCH PROGRAMÓW TSR
+
+     Na  pocz±tku  za³ó¿my,  ¿e  plik  wynikowy  naszego rezydenta nie bêdzie
+przekracza³  64k, co umo¿liwi skompilowanie go do zbioru z rozszerzeniem COM.
+Wszystkie podane przyk³ady mo¿na skompilowaæ po wydaniu poleceñ:
+
+  tasm plik.asm
+  tlink /t plik.obj
+
+     Zamiast   tasm   mo¿na   wstawiæ   masm  (je¿eli  kto¶  dysponuje  takim
+asemblerem), podobnie zamiast tlink - link. W wyniku wykonania wy¿ej podanych
+komend  powinni¶my  otrzymaæ  zbiór plik.com, dysponuj±c wcze¶niej oczywi¶cie
+zbiorem  ¼ród³owym: plik.asm. Pozosta³e zbiory: plik.map oraz plik.obj mo¿emy
+ze  spokojem  w  sercu  skasowaæ  -  nie  bêd±  nam do niczego przydatne. Oto
+przyk³ad najprostszego programu, który w³a¶ciwie nic nie robi poza wypisaniem
+napisu na ekran (nie jest to jeszcze TSR):
+
+----------> Obci±æ <----------
+.model tiny
+.code
+.386
+org 100h
+
+Start:
+  mov  ah,9                  ; numer funkcji wypisuj±cej ci±g znaków
+  mov  dx,offset Napis       ; adres tego ci±gu do rejestru DX
+  int  21h                   ; teraz wywo³ujemy przerwanie dosowe
+  mov  ax,4c00h              ; funkcja: zakoñcz program, 00 to kod b³êdu
+  int  21h                   ; po tym wywo³aniu ju¿ tu nie wrócimy
+
+Napis  db 'Pierwszy program z kursu TSRów.',13,10,'$'
+
+end Start
+----------> Obci±æ <----------
+
+     Wyt³umaczenia  wymaga  tylko  00 (w napisie: mov ax,4c00h), jest to tzw.
+kod  b³êdu  zwracany  DOSowi  po  wyj¶ciu  z  naszego  programu,  mo¿liwy  do
+sprawdzenia  miêdzy  innymi w batch'ach (.BAT). My przyjmiemy konwencjê, ¿e 0
+oznacza  brak b³êdu, 3 - zainstalowanie siê programu w pamiêci, 2 - usuniêcie
+z  pamiêci,  a  wy¿sze  od  3  warto¶ci  bêd±  oznaczaæ  b³±d. Nale¿y jeszcze
+pamiêtaæ,  aby  napis  do  wy¶wietlenia  funkcj±  9  (jak  w przyk³adzie) by³
+zakoñczony  znakiem  dolara ( $ ), jest to oznaczenie koñca napisu, natomiast
+13  i  10  to  kody  CR  i LF - czyli przej¶cia kursora na pocz±tek nastêpnej
+linii.  Jak  kto¶  czego¶  wiêcej  nie  rozumie  to  odsy³am do kursu podstaw
+asemblera jako takiego.
+
+     Pora przej¶æ do w³a¶ciwego programu TSR, który pozostaje w pamiêci (albo
+zostawia  swój  fragment,  dane,  itp).  Trzeba  do tego poznaæ funkcjê, przy
+pomocy  której  bêdzie  realizowany  powrót  do  DOSu z pozostawieniem czê¶ci
+programu w pamiêci. Jedn± z przydatnych metod jest wywo³anie przerwania 27h:
+
+Nazwa:          Koñczenie programu i pozostawanie w pamiêci
+Wywo³anie:      CS - adres segmentu PSP
+                DX - adres pierwszego bajtu powy¿ej programu liczony wobec CS
+Powrót:         Brak
+Opis:           Przerwanie powoduje zakoñczenie programu i pozostawienie go w
+                pamiêci. Maksymalny rozmiar programu pozostawianego w pamiêci
+                mo¿e wynosiæ 64 kB.
+Uwagi:          Nie nale¿y stosowaæ tej funkcji do instalowania procedur
+                obs³ugi przerwañ 22h, 23h, 24h
+
+     Z  powy¿szego  opisu  widaæ,  ¿e do naszych potrzeb jest to przerwanie w
+zupe³no¶ci wystarczaj±ce, istnieje równie¿ funkcja 31h przerwania DOSu (21h),
+która  wykonuje  to  zadanie,  ale  o  niej  na  razie tylko powiem, ¿e jest.
+Nauczymy siê j± stosowaæ gdy zajdzie potrzeba. A oto i przyk³ad programu TSR,
+który   jak   narazie  ogranicza  siê  do  wypisania  komunikatu  na  ekran i
+pozostawienia  w pamiêci fragmentu z napisem. Jeszcze jedna uwaga: programy w
+plikach  .COM  musz±  siê  uruchamiaæ  od  adresu  100h,  dlatego  te¿  chc±c
+pozostawiæ   fragment   naszego   programu  w  pamiêci  musimy  wstawiæ  skok
+(instrukcja  jmp)  do  procedury  instalacyjnej,  aby  tylko  niezbêdne bajty
+pozosta³y w pamiêci. Wygl±da to mniej wiêcej w ten sposób:
+
+pocz±tek programu (adres 100h):         skok do procedury instalacyjnej Ä¿
+                                        ++++++++++                       ³
+Blok zaznaczony plusami                 ++++++++++                       ³
+pozostawiamy w pamiêci po               ++++++++++                       ³
+powrocie do DOSu                        ++++++++++                       ³
+                                        ++++++++++                       ³
+procedura instalacyjna:                 zaczyna siê od tego miejsca    <ÄÙ
+                                        ----------
+                                        ----------
+                                        i tu siê koñczy
+
+     Mam   nadziejê,  ¿e  to  w  miarê  prosty  sposób  wyja¶ni³em.  A  oto i
+zapowiadany  program,  po  uruchomieniu  proponujê  sprawdziæ, czy siê dobrze
+zainstalowa³ - przez wydanie polecenia mem /c /p
+
+----------> Obci±æ <----------
+.model tiny
+.code
+.386
+org 100h
+
+Start:
+  jmp  Instaluj
+
+; to co wpiszemy pomiêdzy etykietami: Start oraz Instaluj pozostanie w
+; pamiêci po powrocie do DOSu
+
+  db   'To zosta³o w pamiêci i le¿y od³ogiem.'
+
+; koniec czê¶ci rezydentnej
+
+Instaluj:
+  mov  ah,9
+  mov  dx,offset Napis
+  int  21h
+  mov  dx,offset Instaluj    ; do DX wpisujemy adres pierwszego bajtu,
+  int  27h                   ; który ma byæ zwolniony, wcze¶niejsze
+                             ; zostaj± w pamiêci na sta³e
+
+Napis  db 'Program zainstalowany w pamiêci.',13,10,'$'
+
+end Start
+----------> Obci±æ <----------
+
+     Wystarczy  tyle  wiadomo¶ci  jak  na  pocz±tek.  W  drugiej czê¶ci kursu
+dowiemy  siê, jak sprawiæ, by TSR nie le¿a³ od³ogiem w pamiêci, ale wykonywa³
+jak±¶  przydatn±  czynno¶æ  (np.  co¶ wy¶wietla³ w rogu ekranu) oraz co z nim
+zrobiæ, jak ju¿ siê nam znudzi (czyli jak siê odinstalowuje programy TSR).

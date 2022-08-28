@@ -1,0 +1,143 @@
+     Podczas pisania Twoje nadgarstki powinny opieraç sië na stole lub na
+specjalnej podp¢rce pod nadgarstki umieszczonej przed klawiaturÜ. Dobrze by
+byío, gdybyû opieraí r¢wnieß íokcie na porëczach krzesía.
+     Po drugie, kiedy uczysz sië z MaszynistkÜ kíad¶ wiëkszy nacisk na
+bezbíëdnoûç niß na szybkoûç. Staraj sië pisaç bez pomyíek, a umiejëtnoûç
+szybkiego pisania przyjdzie sama.
+     Jeßeli podczas pracy z programem nie wiesz jakich klawiszy moßesz ußyç
+w danym momencie - sp¢jrz na d¢í ekranu. W ostatniej linii zawsze wyûwietlane
+sÜ dostëpne klawisze, wraz z opisem, do czego moßna ich ußyç.
+*****
+     Jeßeli otrzymujesz niskie oceny z çwicze§, to znaczy, ße musisz wiëcej
+trenowaç. Nie przerabiaj kolejnych lekcji, ale raczej powr¢ç do poprzednich,
+aby opanowaç to, czego jeszcze nie potrafisz.
+Proponujë, abyû do kolejnej lekcji przechodzií dopiero wtedy, kiedy dobrze
+opanujesz bießÜcy materiaí (tzn. wtedy, kiedy z çwiczenia otrzymasz ocenë co
+najmniej dobrÜ).
+
+     Podczas pisania Twoje nadgarstki powinny opieraç sië na stole lub na
+specjalnej podp¢rce pod nadgarstki umieszczonej przed klawiaturÜ. Dobrze by
+byío, gdybyû opieraí r¢wnieß íokcie na porëczach fotela.
+*****
+     Maszynistka jest to program do nauki szybkiego, bezwzrokowego pisania
+na klawiaturze komputerowej. Bez wzglëdu na to, czy masz jeszcze problemy
+ze znalezieniem na klawiaturze litery A, czy teß potrafisz juß szybko pisaç
+i chciaíbyû robiç to jeszcze szybciej - program ten bëdzie Ci niewÜtpliwie
+pomocny. Nauka z programem zostaía podzielona na 3 poziomy zaawansowania,
+z kt¢rych kaßdy zawiera szereg lekcji. Kaßda lekcja skíada sië z praktycznego
+çwiczenia oraz dotyczÜcych go niezbëdnych wskaz¢wek i wyjaûnie§. Po wykonaniu
+kaßdego çwiczenia zostaniesz poinformowany o swoich postëpach w nauce.
+*****
+Maszynistka, wersja 1.0
+
+     DußÜ zaletÜ indywidualnej nauki jest to, ße moßesz pracowaç we wíasnym
+tempie i w dowolnie wybranym czasie. Niemniej jednak dobrze zaplanuj sobie
+czas na naukë. Postaraj sië uczyç regularnie, nie dopuszczajÜc do díußszych
+przerw. Spr¢buj zarezerwowaç sobie na naukë kilkanaûcie minut co najmniej raz
+dziennie. Nie usiíuj przerabiaç zbyt wielu lekcji na raz. Jeßeli codziennie
+opanujesz jednÜ lekcjë, to juß po miesiÜcu powinieneû pisaç bardzo szybko
+i jedynie doskonaliç swoje umiejëtnoûci na najwyßszym poziomie.
+*****
+     Konfigurowalne elementy niniejszego programu, to d¶wiëki, kolory
+i spos¢b wyûwietlania polskich liter. Zmian w konfiguracji moßna dokonaç
+na dwa sposoby. Pierwszy z nich, spos¢b zalecany, to wybranie odpowiednich
+opcji z menu Konfiguracja i ustawienie wybranych parametr¢w. Drugi,
+"dla zaawansowanych", polega na edycji pliku MASZ.CFG i bezpoûredniej
+zmianie parametr¢w w tym pliku.
+     D¶wiëki, jakie moßna wíÜczyç bÜd¶ wyíÜczyç w programie to:
+D¶wiëk bíedu (np. gdy przez pomyíkë zamiast Enter-a naciûniesz Space),
+D¶wiëk naciskanego klawisza (podczas nauki - çwiczenia),
+D¶wiëk bíëdnie naciûniëtego klawisza (r¢wnieß podczas nauki - çwiczenia).
+*****
+O konfigurowaniu programu MASZYNISTKA w wersji 1.0...
+
+     Wszystkie wyûwietlane przez program elementy obraz¢w moßesz zobaczyç
+na ekranie w wybranych przez siebie kolorach - bez ogranicze§.
+
+     Spos¢b wyûwietlania na ekranie polskich liter zaleßy od posiadanej
+przez Ciebie karty graficznej:
+1). VGA - emulacja programowa,
+2). Hercules z zainstalowanymi sprzëtowo polskimi znakami,
+3). Karta nie umoßliwiajÜca wyûwietlania polskich liter - wersja polskawa.
+*****
+O konfigurowaniu programu MASZYNISTKA w wersji 1.0...
+
+     W bardzo íatwy spos¢b moßna zmieniaç (rozszerzaç) zas¢b sí¢w, zda§
+i akapit¢w, z kt¢rego program czerpie materiaí do çwicze§ na Poziomie III.
+Odpowiednich zmian naleßy dokonaç edytujÜc nastëpujÜce pliki: MASZ.L32 -
+- materiaí do Lekcji 32, MASZ.L34 - materiaí do Lekcji 34, MASZ.L33 - materiaí
+do Lekcji 33, MASZ.L35 - materiaí do Lekcji 35.
+Polskie litery sÜ w nich kodowane w standardzie Mazovia.
+
+UWAGA: PoczÜtkujÜcym radzë nie grzebaç w wyßej wymienionych plikach.
+*****
+     Program Maszynistka w wersji 1.0 jest rozprowadzany na zasadach
+SHAREWARE. Oznacza to, iß moßesz testowaç go do woli, za darmo kopiowaç
+i rozdawaç swoim przyjacioíom i znajomym. Jeßeli spodoba Ci sië i zdecydujesz
+sië ußywaç go, bëdziesz moralnie i prawnie zobowiÜzany do zarejestrowania go
+u autora. W¢wczas otrzymasz od niego zarejestrowanÜ wersjë programu,
+przedstawiajÜcÜ Ciebie jako zarejestrowanego ußytkownika oprogramowania.
+
+     Wymagania sprzëtowe: komputer IBM PC XT lub lepszy i kompatybilny z 640kB
+pamiëci RAM, karta graficzna Hercules, VGA lub SVGA.
+*****
+     Program Ukíad Okresowy Pierwiastk¢w pozwala bíyskawicznie uzyskaç szereg
+informacji o poszczeg¢lnych pierwiastkach (nazwa, symbol, liczba atomowa,
+liczba masowa, stan skupienia, wartoûciowoûç, wartoûciowoûç typowa,
+wartoûciowoûç rzadko spotykana, elektroujemnoûç, energia jonizacji, charakter
+tlenku, konfiguracja elektronowa, rok odkrycia lub rok pierwszego wydzielenia
+w stanie wolnym, liczba znanych izotop¢w oraz liczba znanych trwaíych izotop¢w,
+temperatura topnienia, temperatura wrzenia, gëstoûç, zawartoûç w g¢rnej
+warstwie Ziemi, grupa i okres w ukíadzie okresowym).
+*****
+     Wiëkszoûç informacji zawarych w UOP-ie moßna ukíadaç alfabetycznie lub
+wedíug wzrastajÜcych wartoûci w przejrzystej tabeli. Na przykíad moßna bardzo
+íatwo znale¶ç pierwiastki, kt¢rych temperatura wrzenia jest mniejsza od 0 st.C
+lub kt¢rych gëstoûç jest wiëksza od 13 i mniejsza od 17 g/cm^3. Program Ukíad
+Okresowy Pierwiastk¢w moße uczyç symboli chemicznych, nazw i liczb atomowych
+wybranej iloûci pierwiastk¢w. Po kilku sesjach z programem ußytkownik nie
+powinien mieç wÜtpliwoûci czy Zíoto ma symbol Ag czy moße Au, ani jaki
+pierwiastek kryje sië pod symbolem Sb.
+*****
+     Myûlë, iß program Ukíad Okresowy Pierwiastk¢w moße zagoûciç w zbiorach
+kaßdego ußytkownika komputera typu IBM PC, szczeg¢lnie, ße UOP jest niedrogi,
+ba - prawie darmowy. Jeßeli nawet teraz wydaje sië niepotrzebny, to przecieß
+w przyszíoûci moße okazaç sië prawie niezbëdny, a zawarte w nim informacje
+z biegiem czasu nie starzejÜ sië ani nie dezaktualizujÜ.
+     Wymagania sprzëtowe: komputer IBM PC XT lub lepszy i kompatybilny z 640kB
+pamiëci RAM, karta graficzna Hercules, VGA lub SVGA.
+     W ostatniej linii ekranu zawsze wyûwietlana jest podpowied¶ jakich
+klawiszy moßna w danej chwili ußyç.
+*****
+WELLTRIS: "Jak sama nazwa sugeruje jest to TETRIS, íadnie wykonany, i z dobrÜ
+oprawÜ graficznÜ. W wersji SHAREWARE-owej dodano nieco przydíugi tekst, nie
+pozbawiony jednak poczucia humoru. Rejestracja WELLTRIS-a jest tania. Ten
+rzadki fakt staí sië juß reguíÜ w programach pana Macieja. Jest to pozytywne
+zjawisko, godne naûladowania... WELLTRIS ma sporo opcji, moßemy graç na
+dowolnym poziomie lub wybraç automatycznÜ zmianë stopnia trudnoûci. Stan gry
+moßna zapisaç i odtworzyç."
+                                      Dziennik Polski - Komputery, 20. 09. 95r.
+     Wymagania sprzëtowe: komputer IBM PC XT lub lepszy i kompatybilny z 640kB
+pamiëci RAM, karta graficzna VGA lub lepsza.
+*****
+WELLTRIS: "To kolejna - chyba juß 1265 wersja jednej z najpopularniejszych
+gier. Trzeba jednak przyznaç, ße wersja naszego Czytelnika jest przygotowana
+niezwykle starannie. Zasady gry sÜ takie same - naleßy jak najszczelniej
+zapeíniaç linie spadajÜcymi klockami. Od szybkoûci i stopnia "szczelnoûci"
+zaleßy liczba otrzymywanych punkt¢w. W kaßdej chwili moßna grë przerwaç,
+zapisaç aktualny stan i po kilku dniach rozpoczÜç w tym samym miejscu.
+W sumie caíkiem ciekawy i niezíy program."
+
+                              Gazeta Wyborcza - Komputery i Biuro, 12. 09. 95r.
+*****
+     PrzysyíajÜc do autora list zawierajÜcy:
+1. wyra¶ny dopisek:   "SHAREWARE",
+2. jednÜ pustÜ i sformatowanÜ dyskietkë,
+3. zaadresowanÜ do samego siebie kopertë z naklejonym znaczkiem pocztowym
+   (najlepiej tekturowÜ w celu zabezpieczenia Twojej dyskietki),
+otrzymasz za darmo opisywane wczeûniej programy w wersji niezarejestrowanej
+oraz program do nauki jëzyka angielskiego: UOP.ARJ - 40 kB, MASZ.ARJ - 66 kB,
+ANGLIK.ARJ - 64 kB (freeware), WELLTRIS.ARJ - 56 kB.
+     Niezarejestrowane wersje program¢w dostëpne sÜ w Internecie na wielu
+polskich serwerach, a takße w dobrych Shareware House-ach.
+*****

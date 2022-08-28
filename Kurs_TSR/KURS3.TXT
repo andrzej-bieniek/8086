@@ -1,0 +1,285 @@
+                MINI KURS PISANIA PROGRAMÓW TSR W ASEMBLERZE
+
+3. USUWANIE REZYDENTA Z PAMIÊCI I JAKIE S¡ Z TYM ZWI¡ZANE PROBLEMY
+
+     W  poprzednim  odcinku  dowiedzieli¶my siê, jak napisaæ prosty sekundnik
+instalowany  rezydentnie  w  pamiêci.  Ca³y problem w tym, ¿e po jednorazowym
+zainstalowaniu  takiego TSRa zabiera on nam kawa³ek cennej pamiêci, a gdy ju¿
+znudz±  nam  siê  cyferki  wci±¿  widoczne na ekranie - pozostaje tylko reset
+komputera.  Przysz³a  pora  na  poznanie  kolejnej  techniki,  któr± bêdziemy
+stosowaæ,  a  mianowicie sposób na rozinstalowanie rezydenta, czyli powrót do
+stanu sprzed zainstalowania.
+
+     Na  pocz±tku nale¿y siê zastanowiæ - co tak w³a¶ciwie musimy zrobiæ, aby
+nasz  komputer dzia³a³ tak, jakby¶my nigdy TSRa nie uruchamiali. Po pierwsze:
+nale¿y   sprawdziæ,  czy  w  ogóle  nasz  rezydent  jest  obecny  w  pamiêci.
+Najpro¶ciej   sprawdziæ  wektor  przerwania,  które  on  przechwyci³  podczas
+instalacji  (czyli  w  przypadku  sekundnika bêdzie to przerwanie 8), a potem
+upewniæ  siê,  ¿e pod podanym adresem jest obecny nasz TSR. W tym celu mo¿emy
+po   prostu  porównaæ  offset  (przesuniêcie  w  segmencie)  pocz±tku  naszej
+procedury  z  offsetem  podanym  nam  przez  funkcjê  DOSu  czytaj±c±  wektor
+przerwania  (funkcja  35h  przerwania 21h). Jednak¿e takie proste sprawdzenie
+mo¿e  czasem  nie  przynie¶æ  dobrych  rezultatów,  gdy  oprócz  sekundnika w
+pamiêci  s±  obecne  inne  programy  TSR  o  tych  samych  offsetach procedur
+podpiêtych  pod  przerwanie  zegara.  Najwiêksz±  wiarygodno¶æ mo¿emy uzyskaæ
+tylko  przez  sprawdzenie czego¶ unikalnego dla naszego rezydenta. W praktyce
+wystarczy porównanie ci±gu znaków pod znanym adresem z naszym wzorcem - kiedy
+siê zgadzaj± to mo¿emy kontunuowaæ usuwanie TSRa z pamiêci komputera.
+
+     Po  stwierdzeniu  obecno¶ci  TSRa  i  sprawdzeniu przechwytywanych przez
+niego  przerwañ  (w  przypadku  sekundnika  jest to jedno przerwanie - nr 8),
+mo¿emy  odczytaæ  oryginalne  wektory  tych  przerwañ (wiemy bowiem, w którym
+miejscu  w  rezydencie  s±  one  "zaszyte")  i  przywróciæ  je  (funkcja  25h
+przerwania  21h).  Pozostaje  ju¿ tylko zwolniæ bloki pamiêci zajmowane przez
+sekundnik,  wypisaæ  na  ekranie  komunikat o pomy¶lnym usuniêciu rezydenta i
+normalnie  powróciæ  do  DOSu  (funkcja  4ch przerwania 21h). Oczywi¶cie przy
+instalacji  programu  warto  równie¿  sprawdziæ,  czy  ju¿  wcze¶niej nie by³
+instalowany,  by  unikn±æ  dwukrotnej  instalacji. Praktyczn± realizacjê tych
+kilku  kroków  mo¿ecie  prze¶ledziæ  analizuj±c kod ¼ród³owy podany w dalszej
+czê¶ci.
+
+     Chwila na krótkie wyja¶nienie: DOS przydziela programom pamiêæ w blokach
+o d³ugo¶ci bêd±cej wielokrotno¶ci± 16 bajtów. Poza takimi blokami danych mog±
+wyst±piæ  jeszcze  bloki  z  kodem  programu  oraz bloki z otoczeniem (tam s±
+przechowywane  wszystkie ustawienia otoczenia programu, czyli warto¶ci nadane
+przez  PATH,  SET,  PROMPT  itp.  -  mo¿na  je wy¶wietliæ komend± SET). Ka¿dy
+program  przy  uruchomieniu "otrzymuje" swój blok z kopi± otoczenia DOSowego,
+które  mo¿e  dowolnie  modyfikowaæ  (np. zmieniæ ¶cie¿kê wyszukiwania PATH) i
+odczytywaæ   (chc±c  pobraæ  parametry  otoczenia).  Prócz  samej  zawarto¶ci
+otoczenia  na  koñcu  bloku  jest  wpisywana  ¶cie¿ka  dostêpu  i nazwa pliku
+"w³a¶ciciela",   czyli  programu,  do  którego  nale¿y  dane  otoczenie,  np.
+C:\MASM\PROGS\KURS\MOJPROG1.COM.  Jak  czytaæ parametry otoczenia dowiemy siê
+kilka  odcinków dalej. Przy zakoñczeniu programu otoczenie jest automatycznie
+zwalniane  -  zmiany,  które  program  w  nim poczyni³ s± tracone. Oczywi¶cie
+zostawiaj±c   TSRa   w  pamiêci  fragment  bloku  z  kodem  programu  zostaje
+(wielko¶æ fragmentu zaznaczamy w rejestrze DX przy wywo³aniu przerwania 27h),
+natomiast reszta jest zwalniana (czyli blok jest skracany), blok z otoczeniem
+równie¿  pozostaje  na  swoim miejscu. Dlatego czêsto w TSRach blok otoczenia
+jest  zwalniany  ju¿  w  czasie  instalacji,  aby zmniejszyæ wielko¶æ pamiêci
+zajmowanej  przez  rezydenta. Tak te¿ bêdzie w nowej wersji sekundnika. Numer
+segmentu  otoczenia (¶rodowiska) odczytamy ze s³owa 16-bitowego umieszczonego
+w  segmencie  programu  pod adresem 002ch (czyli w obszarze PSP, o tym bêdzie
+pó¼niej).
+
+     A oto przydatne informacje:
+
+Funkcja 49h
+Nazwa:          Zwalnianie pamiêci
+Wywo³anie:      AH=49h
+                ES - segment, w którym znajduje siê zwalniana pamiêæ
+Powrót:         Ustawiony znacznik C : AX - kod b³êdu
+                Nie ustawiony C : OK
+
+     Po  wywo³aniu  tej  funkcji  mo¿emy  stwierdziæ,  czy wyst±pi³ b³±d (np.
+podali¶my  numer  segmentu,  który  nie zaczyna nowego bloku pamiêci) poprzez
+sprawdzenie znacznika C:
+
+; wcze¶niej nadajemy rejestrom warto¶ci potrzebne do wywo³ania funkcji
+  int  21h
+  jc   Blad             ; skok gdy znacznik C jest ustawiony
+; === nie ma b³êdu ===
+Blad:
+; === wyst±pi³ b³±d ===
+
+     Pytanie  w  jaki  sposób  rozpoznamy,  czy  u¿ytkownik chce zainstalowaæ
+program,  czy  go  rozinstalowaæ  ?  Oczywi¶cie  w  tym celu musimy sprawdziæ
+parametry  podane  w linii poleceñ (czyli odró¿niæ uruchomienie: TEST.COM od:
+TEST.COM /u). Dla uproszczenia przyjmijmy, ¿e je¿eli w linii poleceñ znajdzie
+siê litera 'u' to nale¿y usun±æ TSRa z pamiêci.
+
+     Znaki  podane  w  linii poleceñ przy uruchamianiu programu s± trzymane w
+bloku  PSP  (ang. Program Segment Prefix), który w zbiorach typu COM rezyduje
+na  pocz±tku  segmentu  z  programem  (jak  pamiêtamy, program zaczyna siê od
+adresu  100h,  wcze¶niej jest w³a¶nie PSP). Kolejne znaki parametrów podanych
+programowi  s±  zapisywane pocz±wszy od adresu 81h, pod adresem 80h le¿y bajt
+zawieraj±cy  ilo¶æ znaków, a ca³y ci±g koñczy siê znakiem o kodzie 0dh (czyli
+CR).  Literê  'u'  znajdziemy  porównuj±c  kolejne  znaki a¿ do znaku CR albo
+wcze¶niejszego  napotkania 'u'. I znowu - konkretn± implementacjê znajdziecie
+w kodzie programu.
+
+     Przysz³a  pora  na  kolejne  ulepszenie  naszego  sekundnika - bêdzie on
+zmienia³  swój  kolor  w  zale¿no¶ci  od tego, czy klawiatura bêdzie w stanie
+CapsLock.  Do  tego  celu przyda nam siê opis zawarto¶ci komórek danych BIOSu
+pod adresami: 0040:0017h (czyli wygodniej jest napisaæ 0000:0417h - bêdzie to
+samo) i nastêpnym (418h):
+
+Adres 0:0417h
+Numer bitu:     Znaczenie bitu zapalonego:
+0               prawy Shift wci¶niêty
+1               lewy Shift wci¶niêty
+2               dowolny Ctrl wci¶niêty
+3               dowolny Alt wci¶niêty
+4               ScrollLock zapalony
+5               NumLock zapalony
+6               CapsLock zapalony
+7               stan Insert
+
+Adres 0:0418h
+Numer bitu:     Znaczenie bitu zapalonego:
+0               lewy Ctrl wci¶niêty
+1               lewy Alt wci¶niêty
+2               SysReq wci¶niêty
+3               stan przerwy (czyli po wci¶niêciu Pause)
+4               ScrollLock wci¶niêty
+5               NumLock wci¶niêty
+6               CapsLock wci¶niêty
+7               Insert wci¶niêty
+
+     Jak   widzimy,  aktualny  stan  prze³±cznika  CapsLock  mo¿emy  odczytaæ
+sprawdzaj±c  bit  nr  6 pod adresem 0:417h, gdy bêdzie zapalony to znaczy, ¿e
+klawiatura  jest  w  stanie  CapsLock (chyba nie muszê t³umaczyæ, na czym ten
+stan  polega).  Sprawdzenie jednego bitu najpro¶ciej dokonaæ instrukcj± test,
+której  podajemy  maskê  bitu  (czyli  jego  wagê,  w tym przyk³adzie 40h), a
+otrzymujemy  w  wyniku ustawienie lub wyzerowanie flagi ZF, czyli przepisanie
+do  niej  zawarto¶ci testowanego bitu (wyzerowanie ZF gdy bit by³ wyzerowany,
+ustawienie  -  gdy  by³  ustawiony).  Mo¿na  te¿  instrukcjê  test  wykonaæ z
+parametrem nie bêd±cym wag± jednego bitu - wtedy zostanie logicznie wymno¿ony
+(AND)  bajt  sprawdzany  i  podana  warto¶æ oraz odpowiednio ustawione flagi,
+podobnie  jak  dzia³a  instrukcja and - tylko bez zapamiêtywania wyników. Dla
+przypomnienia   podam   jeszcze   wagi  kolejnych  bitów,  od  0.  pocz±wszy:
+1,2,4,8,16,32,64,128,  a w hex. to bêdzie: 1,2,4,8,10h,20h,40h,80h. Popatrzmy
+na fragment kodu do sprawdzenia stanu CapsLock:
+
+  xor  ax,ax
+  mov  es,ax            ; zerujemy rejestr segmentowy ES
+  test byte ptr es:[417h],40h
+  jz   Nie_ma_CapsLock
+; CapsLock wci¶niêty
+Nie_ma_CapsLock:
+; CapsLock nie wci¶niêty
+
+----------> Obci±æ <----------
+.model tiny
+.code
+.386
+org 100h
+
+Start:
+  jmp  StartTutaj
+
+; tutaj bêd± nasze zmienne:
+staraproc dd 0
+; znacznik potrzebny do sprawdzenia zainstalowania TSRa:
+znacznik db 'Sekundnik, odc. 3'
+
+NaszaProc:
+  push ax
+  push bx
+  push di
+  push es
+  xor  ax,ax                 ; segment komórki ze stanem klawiatury
+  mov  es,ax
+  mov  bh,0ch                ; standardowy kolor jasnoczerwony do BH
+  test byte ptr es:[417h],40h; sprawdzamy, czy w³±czony jest CapsLock
+  jnz  CapsOn                ; skok gdy CapsLock wci¶niêty
+  mov  bh,1                  ; kolor niebieski - CapsLock wy³±czony
+CapsOn:
+  mov  ax,0b800h
+  mov  es,ax
+  xor  di,di
+  xor  al,al
+  out  70h,al
+  jmp  $+2
+  in   al,71h
+  mov  bl,al
+  and  bl,0fh
+  add  bl,'0'
+  shr  al,4
+  add  al,'0'
+  mov  ah,bh                 ; ³adujemy do AH wcze¶niej ustalony kolor
+  stosw                      ; i rzucamy na ekran pierwsz± cyfrê
+  mov  al,bl
+  stosw                      ; potem drug±
+  pop  es
+  pop  di
+  pop  bx
+  pop  ax
+  jmp  dword ptr cs:[staraproc]        ; skok do oryginalnej procedury
+
+; koniec czê¶ci rezydentnej
+
+StartTutaj:
+  mov  ah,9                  ; 09h: wydruk nag³ówka na ekran
+  mov  dx,offset Logo
+  int  21h
+  mov  si,81h                ; pocz±tek ci±gu parametrów
+  cld
+Petla:
+  lodsb                      ; wczytanie do AL jednego znaku z DS:SI, SI=SI+1
+  cmp  al,'u'                ; mo¿e to jest 'u' ?
+  je   Rozinstaluj
+  cmp  al,'U'                ; a mo¿e du¿e 'U' ?
+  je   Rozinstaluj
+  cmp  al,0dh                ; mo¿e kod ENTERa (CR) ?
+  je   Instaluj
+  jmp  Petla                 ; skok gdy nic nie trafimy
+
+Rozinstaluj:
+  mov  ax,3508h              ; 35h: pobranie wektora przerwania
+  int  21h
+  cmp  bx,offset NaszaProc   ; sprawdzamy, czy siê zgadzaj± offsety
+  jne  NieMa
+  mov  si,offset znacznik    ; adres lokalnego znacznika do DS:SI
+  mov  di,si                 ; i znacznika sprawdzanego do ES:DI
+  mov  cx,17                 ; d³ugo¶æ znacznika w bajtach
+  cld
+  repe cmpsb                 ; sprawdzamy a¿ do ró¿ni±cego siê bajtu
+  jnz  NieMa                 ; skok gdy siê nie zgadzaj± znaczniki
+; Teraz ju¿ nie ma przeciwwskazañ do rozinstalowania TSRa
+  mov  dx,word ptr es:[staraproc]      ; czytamy oryginalny wektor
+  mov  ax,word ptr es:[staraproc +2]   ; z bloku TSRa
+  mov  ds,ax
+  mov  ax,2508h              ; 25h: ustawienie wektora przerwania
+  int  21h
+  mov  ah,49h                ; 49h: zwolnienie bloku pamiêci z TSRem
+  int  21h                   ; w ES mamy segment TSRa
+  mov  ax,cs
+  mov  ds,ax                 ; przywracamy do DS segment naszego programu
+  mov  ah,9                  ; 09h: wydruk napisu na ekran
+  mov  dx,offset Uninst
+  int  21h                   ; drukujemy komunikat o pomy¶lym usuniêciu TSRa
+  mov  ax,4c02h              ; 4ch: powrót do DOSu, w AL kod b³êdu
+  int  21h
+
+NieMa:
+  mov  ah,9                  ; 09h: wydruk napisu na ekran
+  mov  dx,offset Brak
+  int  21h
+  mov  ax,4c04h              ; 4ch: powrót do DOSu, w AL kod b³êdu
+  int  21h
+
+Instaluj:
+  mov  ax,word ptr ds:[2ch]  ; numer segmentu ¶rodowiska odczytamy z PSP,
+  mov  es,ax                 ; wrzucimy do ES
+  mov  ah,49h                ; 49h: zwolnienie bloku pamiêci
+  int  21h
+  mov  ax,3508h              ; 35h: pobranie wektora przerwania
+  int  21h                   ; wynik wpad³ do ES:BX
+  mov  word ptr cs:[staraproc],bx      ; trzeba jeszcze go gdzies zapamietac
+  mov  word ptr cs:[staraproc +2],es
+  mov  ax,2508h              ; 25h: ustawienie wektora przerwania
+  mov  dx,offset NaszaProc   ; DS:DX - wektor naszej procedury
+  int  21h
+  mov  ah,9                  ; 09h: wydruk napisu na ekran
+  mov  dx,offset Napis
+  int  21h
+  mov  dx,offset StartTutaj  ; do DX wpisujemy adres pierwszego bajtu,
+  int  27h                   ; który ma byæ zwolniony, wcze¶niejsze
+                             ; zostaj± w pamiêci na sta³e
+
+Logo   db 'Sekundnik 1996.',13,10
+       db '     parametr /u - usuniêcie programu z pamiêci',13,10,'$'
+Napis  db 'Program zainstalowany w pamiêci.',13,10,'$'
+Brak   db 'Program nie by³ wcze¶niej instalowany w pamiêci.',13,10,'$'
+Uninst db 'Program usuniêty z pamiêci.',13,10,'$'
+
+end Start
+----------> Obci±æ <----------
+
+     W  zale¿no¶ci  od stanu CapsLock ustawiamy odpowiednio kolor wpisywanych
+na  ekran znaków - niech to bêdzie jasnoczerwony dla CapsLock w³±czonego oraz
+niebieski  dla CapsLock nie aktywnego. W³a¶ciwie nie pozostaje ju¿ nic innego
+jak tylko poczytaæ listing. Co zrobiæ, gdy program jest w pamiêci, ale zosta³
+po  nim zainstalowany inny rezydent oraz jak wykryæ tak± sytuacjê dowiemy siê
+w  nastêpnym  odcinku  (przy  okazji poznamy bardzo u¿yteczne przerwanie 2fh,
+zwane przez znawców tematu Multiplex Interrupt).

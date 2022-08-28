@@ -1,0 +1,251 @@
+                MINI KURS PISANIA PROGRAMÓW TSR W ASEMBLERZE
+
+5. WYWO£YWANIE PRZERWAÑ DOSOWYCH W CZASIE PRACY TSR'A
+
+     Pi±ty   odcinek   kursu   pisania   TSRów  bêdzie  po¶wiêcony  problemom
+wywo³ywania  przerwañ  DOSa w trakcie dzia³ania rezydenta i sposobom radzenia
+sobie  z  tymi  trudno¶ciami.  Otó¿ zacznijmy od tego, ¿e w naszym rezydencie
+(nazwijmy  go  roboczo:  "Grabber")  przechwycili¶my  przerwanie klawiatury i
+chcemy,  aby  siê  uaktywni³  po  naci¶niêciu  przez  u¿ytkownika  kombinacji
+klawiszy  LewyShift+LewyCtrl+Delete,  po  czym  zapisa³  do zbioru w katalogu
+C:\TEMP zawarto¶æ ekranu trybu graficznego 13h. Jest to tryb o rozdzielczo¶ci
+320x200  w  256  kolorach,  w którym od pocz±tku segmentu A000h zapisane s± w
+kolejnych bajtach kolory punktów najwy¿szej linii ekranu (poczynaj±c od lewej
+strony), od adresu A000h:320 kolory punktów w drugiej linii itd. W ten sposób
+otrzymujemy  320x200  =  64000  bajtów do zapisania w zbiorze. Do tego nale¿y
+doliczyæ  768  bajtów na paletê kolorów (768=3*256, mamy 256 kolorów, ka¿dy o
+sk³adowych:  czerwonej,  zielonej  i  niebieskiej). Aby nasze zbiory nie by³y
+"oderwane"  od  rzeczywistego ¶wiata, bêdziemy je zapisywaæ w formacie .BMP -
+dok³adaj±c  na  pocz±tku  zbioru  sta³y  nag³ówek  (poniewa¿  za ka¿dym razem
+zapisujemy  ekran  o  tej  samej  wielko¶ci i liczbie kolorów) oraz zgodnie z
+konwencj±   zapisu  plików  .BMP  -  bêdziemy  zapisywali  kolejne  linie  od
+najni¿szej  do  najwy¿szej (czyli w kolejno¶ci odwrotnej, ni¿ ich po³o¿enie w
+pamiêci   ekranu).   Kolejne   pliki  bêd±  otrzymywa³y  nazwy  OBRAZ000.BMP,
+OBRAZ001.BMP i tak dalej.
+
+     Tutaj  zaczynaj±  siê nasze problemy - nie mo¿emy tak poprostu bezkarnie
+utworzyæ  nowego  pliku  w  katalogu C:\TEMP, zapisaæ do niego nasze dane, po
+czym  go  zamkn±æ.  W momencie naci¶niêcia kombinacji klawiszy uaktywniaj±cej
+naszego  rezydenta  bêdzie przecie¿ wykonywany inny program, który mo¿e w tej
+chwili  sam  zapisywaæ jakie¶ dane. Wtedy DOSowi zrobi siê "mêtlik w g³owie",
+co  doprowadzi  w najlepszym przypadku do zawieszenia komputera, a mo¿emy te¿
+uszkodziæ  system  plików  lub  dokonaæ  TSRem  czego¶  bardziej okrutnego. I
+w³a¶nie  o  to  chodzi,  aby  omin±æ moment, w którym inny program korzysta z
+us³ug  dosowych.  Z pomoc± w tej sytuacji przyjd± nam mechanizmy udostêpniane
+przez  sam  system operacyjny, a mianowicie flaga INDOS - jeden bajt pamiêci,
+który  informuje  nas, czy w³a¶nie w tej chwili jest wykonywana jaka¶ funkcja
+DOSa.  Adres  flagi  INDOS  mo¿emy  uzyskaæ poprzez odwo³anie do nastêpuj±cej
+funkcji przerwania 21h:
+
+Nazwa:          Pytanie o adres sygnalizatora pracy systemu
+Wywo³anie:      AH=34h
+Powrót:         ES:BX - adres sygnalizatora pracy systemu
+Opis:           Funkcja    zwraca    adres   sygnalizatora   pracy   systemu.
+                Sygnalizator  ten  jest ustawiony (ró¿ny od zera), gdy system
+                wykonuje  jak±¶  czynno¶æ,  której  nie  nale¿y mu przerywaæ.
+                Sygnalizator  ten  jest  czêsto  u¿ywany  przez programy TSR,
+                które  sprawdzaj±,  czy  mog± siê uaktywniæ. Sygnalizator ten
+                jest  równie¿  ustawiony  podczas  czekania  przez  system na
+                naci¶niêcie   klawisza.   W  takim  wypadku  jest  wywo³ywane
+                przerwanie  28h,  które  TSR mo¿e przechwyciæ i równie¿ w ten
+                sposób siê uaktywniaæ.
+
+     Przy okazji poznali¶my kolejny wa¿ny aspekt programowania TSRów - pomimo
+¿e  jest  wykonywane  przerwanie DOSa, które oczekuje na wci¶niêcie klawisza,
+nie  robi±c  prócz tego nic po¿ytecznego, flaga INDOS jest zapalona. Ten fakt
+jednak¿e  mo¿emy  wykryæ  poprzez  sprawdzenie, czy DOS wywo³uje w tym czasie
+przerwanie  28h  (tzw. przerwanie Idle). Robimy to poprzez przechwycenie tego
+przerwania  i  podstawienia  w  jego  miejsce swojej w³asnej procedury. Kiedy
+u¿ytkownik naci¶nie odpowiedni± kombinacjê klawiszy, sprawdzamy, czy DOS jest
+w  tej  chwili  wolny  -  flaga  INDOS=0. W przeciwnym wypadku musimy dokonaæ
+sprawdzenia,  czy jest wywo³ywane przerwanie 28h (w naszej procedurze obs³ugi
+tego  przerwania  zapalamy odpowiedni± flagê aktywno¶ci). Je¿eli nie jest ono
+wywo³ywane,  a  DOS  jest  zajêty - nie mo¿emy w tej chwili nic zrobiæ. Wtedy
+mamy   kilka  mo¿liwo¶ci  rozwi±zania  tego  problemu,  jak  np.  przepisanie
+zawarto¶ci   ekranu   (wraz   z   palet±)  do  innego  bloku  pamiêci,  który
+zarezerwowali¶my  przy  instalacji,  a przy najbli¿szej okazji zapisanie tego
+bloku  na dysk (tutaj okaza³o by siê pomocne przechwycenie równie¿ przerwania
+zegara  -  INT  08h  -  które  bêdzie  nam dostarcza³o t± "najbli¿sz± okazjê"
+oko³o  18  razy  na  sekundê). Jednak¿e kto by chcia³ u¿ywaæ TSRa, który przy
+instalacji   zabiera   nam   ponad  64000  bajtów  cennej  pamiêci  ?  Drugim
+rozwi±zaniem  jest zaalokowanie po¶redniego bloku w pamiêci XMS lub EMS - ale
+na to przyjdzie czas w kolejnych odcinkach tego cyklu. My w naszym rezydencie
+wykorzystamy  trzeci±  mo¿liwo¶æ  -  po prostu nic nie zrobimy, wydaj±c tylko
+krótki  d¼wiêk  z  g³o¶nika informuj±cy o naszej bezradno¶ci. I jeszcze jedna
+uwaga  - gdy DOS czeka na naci¶niêcie klawisza wywo³uj±c co chwilê przerwanie
+28h,  a my z tego skorzystamy, nie mo¿emy po uaktywnieniu rezydenta korzystaæ
+z przerwañ dosowych o numerach od 00h do 0Ch.
+
+     No to mamy ju¿ ogólny zarys dzia³ania naszego TSRa: w procedurze obs³ugi
+przerwania   klawiatury   sprawdzamy,   czy  naci¶niêto  kombinacjê  klawiszy
+LShift+LCtrl+Delete,  a  gdy  mia³o  to  miejsce,  przekazujemy do sterownika
+klawiatury potwierdzenie odebrania znaku i w odblokowujemy kontroler przerwañ
+(jest  to  szczegó³owo  opisane  w  4. odcinku tego kursu), po czym ustawiamy
+nasz±  wewnêtrzn±  flagê  aktywno¶ci i w³±czamy przerwania instrukcj±: "sti".
+Kiedy  teraz  u¿ytkownik  znowu naci¶nie t± kombinacjê klawiszy, a my jeszcze
+nie skoñczyli¶my obs³ugi poprzedniego naci¶niêcia (czyli gdy nasza wewnêtrzna
+flaga  aktywno¶ci  jest  zapalona) - wtedy po prostu wychodzimy z przerwania.
+Dalej  nale¿y  sprawdziæ  flagê  INDOS  -  gdy jest zapalona to dajemy sygna³
+d¼wiêkowy informuj±cy o naszej bezradno¶ci i równie¿ wychodzimy z przerwania,
+nie  zapominaj±c o zgaszeniu naszej wewnêtrznej flagi aktywno¶ci. W koñcu gdy
+wszystko  siê  powiod³o  -  przystêpujemy  do  rzeczy.  Tworzymy nowy zbiór w
+katalogu  C:\TEMP  (lub innym, ka¿dy mo¿e wstawiæ sobie w kod ¼ród³owy to, co
+chce), zapisujemy do tego zbioru sta³y nag³ówek, czytamy paletê kolorów karty
+VGA  do  naszego  obszaru  roboczego o wielko¶ci 768 bajtów, zapisujemy j± do
+pliku,  dalej  nagrywamy  kolejne  linie  obrazu  poczynaj±c od najni¿szej (o
+adresie  0A000h:0F8C0h)  a¿  do najwy¿szej (o adresie 0A000h:0), zmniejszaj±c
+offset nagrywanego bloku pamiêci za ka¿dym razem o 320 bajtów (d³ugo¶æ jednej
+linii).  Potem  tylko  zamykamy  plik,  gasimy  wewnêtrzn± flagê aktywno¶ci i
+powracamy  z  przerwania.  Ca³y  kod tej operacji wstawimy w naszego gotowego
+rezydenta, korzystaj±cego z przerwania 2Fh (Multiplex Interrupt), opisywanego
+w  poprzednim  odcinku cyklu, pomijaj±c tylko chwilowo nam niepotrzebn± czê¶æ
+s³u¿±c±  do  dezaktywowania  TSRa  bez  usuwania  go z pamiêci. Nasz rezydent
+bêdzie  "wra¿liwy"  na numer procesu 91h podawany przy wywo³ywaniu przerwania
+2Fh.
+
+     Teraz  czas  na  kilka  zagadnieñ nie dotycz±cych bezpo¶rednio programów
+rezydentnych, ale bardzo nam przydatnych. Otó¿ musimy wiedzieæ po pierwsze, w
+jaki  sposób  sprawdziæ,  czy  karta graficzna jest w trybie 13h. Mo¿emy tego
+dokonaæ wywo³uj±c bezpo¶rednio podfunkcjê 0Fh przerwania video - INT 10h:
+
+Nazwa:          Pytanie o aktualny tryb wy¶wietlania
+Wywo³anie:      AH=0Fh
+Powrót:         AL - tryb pracy
+                AH - liczba znaków w wierszu
+                BH - numer aktywnej strony
+
+     Jednak¿e  mo¿emy  odczytaæ  numer  trybu  równie¿  bez u¿ycia przerwañ -
+szybciej  i  bezpieczniej  (ten  sam  problem,  co z przerwaniem dosowym - co
+bêdzie,  gdy  akurat  w tym momencie g³ówny program odwo³a³ siê do przerwania
+video  ?  Rozwi±zanie  problemu  by³oby  bardziej  skomplikowane), odczytuj±c
+bezpo¶rednio  odpowiedni±  warto¶æ z obszaru zmiennych BIOSu, zawarto¶æ bajtu
+spod adresu 0040h:0049h (czyli 0:0449h) równie¿ jest numerem aktualnego trybu
+pracy  karty  graficznej.  Kolejne  zagadnienie  to odczytanie palety kolorów
+karty  VGA. W przestrzeni adresowej wej¶cia/wyj¶cia (I/O) ca³ego komputera s±
+wydzielone  porty,  z  których korzysta karta VGA. Maj± one adresy od 3C0h do
+3DFh.  Aby  odczytaæ sk³adowe RGB jednego koloru, nale¿y do portu 3C7h wys³aæ
+bajt  z numerem koloru (0..255), a nastêpnie z portu 3C9h odczytaæ po kolei 3
+bajty  ze  sk³adowymi:  czerwon±,  zielon±  i  niebiesk±. Licznik koloru jest
+automatycznie  zwiêkszany  o  1,  mo¿emy  potem  od  razu  odczytaæ  sk³adowe
+kolejnego  koloru,  ju¿ bez wpisywania jego numeru do portu 3C7h. Najszybciej
+mo¿na   odczytaæ   ca³±   paletê  kolorów  pod  adres  w  ES:DI  przy  pomocy
+nastêpuj±cych instrukcji:
+
+  xor  al,al       ; AL=0
+  mov  dx,3c7h
+  out  dx,al
+  mov  dl,0c9h
+  mov  cx,768      ; odczytujemy 256*3 = 768 bajtów
+  cld
+  rep  insb        ; z portu DX odczytaj kolejno CX bajtów i umie¶æ pod ES:DI
+
+     Na  nasze  nieszczê¶cie  paleta jest zapisywana w zbiorach .BMP w bardzo
+przedziwny  sposób  -  ka¿dy kolor zajmuje w niej nie 3, ale 4 bajty - i to w
+kolejno¶ci:  niebieski, zielony, czerwony, a 4. bajt jest równy zero. Do tego
+jeszcze karta VGA zwraca nam sk³adowe kolorów z zakresu 0..63, a w pliku .BMP
+s±  zapisywane  sk³adowe z zakresu 0..255. Musimy to wszystko uwzglêdniæ przy
+budowie  naszego  rezydenta  -  konkretne  rozwi±zanie  znajdziecie  w kodzie
+¼ród³owym do³±czonym do tego odcinka.
+
+     Aby  przy  bezradno¶ci naszego rezydenta (kiedy nie mo¿emy wykorzystywaæ
+przerwañ  DOSa)  wydaæ  sygna³  d¼wiêkowy  nie  za  d³ugi  i  nie  za krótki,
+posi³kujemy  siê  odczytem  zmiennej  BIOSa  zawieraj±c± ilo¶æ taktów zegara,
+zwiêkszanej  w  ka¿dym  przerwaniu  zegarowym (INT 08h), czyli co oko³o 55 ms
+(18.2  raza  na sekundê). Po prostu w³±czymy d¼wiêk, odczytamy jej zawarto¶æ,
+poczekamy,  a¿  ulegnie  zmianie  o  np.  2, po czym wy³±czymy d¼wiêk. Sposób
+prosty i skuteczny. Nale¿y tylko pamiêtaæ o w³±czeniu przerwañ ju¿ wcze¶niej,
+aby  zosta³a  wykonana  procedura  obs³ugi  zegara zwiêkszaj±ca licznik. No i
+najwa¿niejsze:  licznik  mie¶ci  siê  w pamiêci od adresu 0:046Ch i zajmuje 4
+bajty,  w  kolejno¶ci  od  najm³odszego  do  najstarszego. W naszym przypadku
+wystarczy  sprawdziæ,  czy  siê  zmieni³  ten  najmniej  znacz±cy  (czyli pod
+adresem, który poda³em wy¿ej).
+
+     Operacje  na  plikach  wykonujemy  korzystaj±c  z  us³ug  dobrze ju¿ nam
+znanego   przerwania   DOSu   -  21h.  Przy  otwieraniu  lub  tworzeniu  plik
+identyfikowany  jest przez nazwê zapisan± w ASCIIZ, natomiast przy nastêpnych
+odwo³aniach  do  ju¿  otwartego  zbioru  (przy  zapisywaniu  do niego danych,
+zamykaniu go) wykorzystujemy tzw. file handle (uchwyt, doj¶cie), czyli liczbê
+16-bitow± okre¶laj±c± nam w sposób jednoznaczny, z jakim wcze¶niej otwieranym
+plikiem  mamy  do  czynienia.  Oto  opisy  funkcji  dosowych,  które  nam siê
+przydadz±:
+
+Nazwa:          Tworzenie doj¶cia
+Wywo³anie:      AH=3Ch
+                DS:DX - adres ³añcucha w kodzie ASCIIZ zawieraj±cego nazwê
+                        pliku
+                CX - atrybuty pliku
+Powrót:         Ustawiony znacznik C: AX - kod b³êdu
+                Nie ustawiony C: AX - numer doj¶cia
+Opis:           Funkcja tworzy plik o podanej nazwie, równocze¶nie definiuj±c
+                doñ doj¶cie z uprawnieniami do czytania i pisania w pliku.
+                Nowy plik ma zerow± d³ugo¶æ i atrybuty przekazane w rejestrze
+                CX. Je¶li plik o podanej nazwie ju¿ instnieje to zostaje
+                zwolniona pamiêæ dyskowa mu przydzielona, nadana d³ugo¶æ 0,
+                ustalone nowe atrybuty i przyporz±dkowane doj¶cie z uprawn.
+                do czytania i pisania.
+
+     Wyja¶nienia  wymaga  zawarto¶æ  rejestru CX ustawianego przed wywo³aniem
+funkcji  3Ch.  Atrybuty  pliku  s± reprezentowane przez kolejne bity w dolnej
+po³ówce rejestru CX (czyli w CL), górn± po³ówkê (CH) wype³niamy zerami:
+
+bit:   7 6 5 4 3 2 1 0      r - Read Only
+       - - a d v s h r      h - Hidden
+                            s - System
+                            v - Volume ID
+                            d - Directory
+                            a - archive
+
+     Widaæ,  ¿e przy pomocy tej funkcji mo¿emy równie¿ utworzyæ nowy katalog,
+zapalaj±c  w  CL  czwarty bit, jednak¿e je¿eli ju¿ istnieje taki katalog, nie
+ulegnie  automatycznemu  skasowaniu,  inaczej  ni¿  to siê dzieje w przypadku
+plików.  W  naszym  rezydencie  nowo  tworzonym plikom bêdziemy nadawaæ tylko
+atrybut  Archive - czyli do rejestru CX wpisywaæ warto¶æ 0020h. Po utworzeniu
+pliku  bêdziemy  zwiêkszaæ  jego  numer  -  3  ostatnie  cyfry nazwy stanowi±
+licznik. Zapisu danych do otwartego pliku dokonujemy przy pomocy funkcji 40h:
+
+Nazwa:          Pisanie przez doj¶cie
+Wywo³anie:      AH=40h
+                BX - numer doj¶cia
+                CX - liczba bajtów do zapisania
+                DS:DX - adres bufora
+Powrót:         Ustawiony znacznik C: AX - kod b³êdu
+                Nie ustawiony C: AX - liczba zapisanych bajtów
+Opis:           Funkcja   zapisuje   do  pliku  lub  urz±dzenia  zwi±zanego z
+                doj¶ciem,  którego numer jest przekazany w rejestrze BX bajty
+                znajduj±ce siê w buforze, którego adres zawiera DS:DX. Liczba
+                bajtów  do  zapisania  jest  przekazywana  w rejestrze CX. Po
+                zapisie wewnêtrzny wska¼nik pozycjipliku jest przesuwany tak,
+                aby  wskazywa³  na bajt nastêpny po ostatnio zapisanym. W ten
+                sposób   mo¿liwe   jest   sekwencyjne  zapisywanie  w  pliku.
+                Wywo³anie  tej  funkcji  z  zawarto¶ci±  CX  równ± 0 powoduje
+                zmianê  wielko¶ci  pliku  na  tak±,  jak±  aktualnie wskazuje
+                wska¼nik pozycji.
+
+Nazwa:          Zamykanie doj¶cia
+Wywo³anie:      AH=3Eh
+                BX - numer doj¶cia
+Powrót:         Ustawiony znacznik C: AX - kod b³êdu
+                Nie ustawiony C: OK.
+Opis:           Funkcja zamyka doj¶cie o numerze przekazanym w AX i czy¶ci
+                wszystkie bufory zwi±zane z plikiem.
+
+     No  to  w³a¶ciwie  posiadamy  ju¿  ca³±  wiedzê  potrzebn±  do napisania
+rezydenta,  którym  bêdziemy  zrzucali  ekran karty VGA do pliku .BMP, nale¿y
+tylko  dodaæ,  ¿e  ta  metoda bêdzie dawa³a dobre rezultaty tylko w przypadku
+programów korzystaj±cych z "czystego" trybu 13h - 320x200 w 256 kolorach, bez
+¿adnych "upiêkszeñ" w stylu Xmode (podnoszenie rozdzielczo¶ci na standardowej
+karcie  VGA  poprzez  zmianê trybu adresowania), z czego intensywnie korzysta
+wiêkszo¶æ programów demonstracyjnych i czê¶æ gier. Nasze eksperymenty równie¿
+nie  powiod± siê, gdy program przechwytuje przerwanie klawiatury i nie zwraca
+sterowanie  do  oryginalnej  procedury  obs³ugi.  Wtedy  mo¿emy  zainstalowaæ
+rezydenta  w  przerwaniu  zegara  (INT  08h)  i  tam  sprawdzaæ, czy ostatnio
+wciskanym  klawiszem by³ Delete, jak równie¿ uaktualniaæ flagi stanu klawiszy
+kontrolnych  na  podstawie informacji o wci¶niêciach/puszczeniach Alt, Ctrl i
+Shift.  Ale to ju¿ bêdzie tematem innego odcinka. Podobnie ma siê sprawa przy
+naszym  uproszczeniu  -  w  przyk³adowym  rezydencie nie sprawdzamy, czy jest
+wywo³ywane  przerwanie  28h,  po stwierdzeniu zajêto¶ci DOSu (flaga INDOS<>0)
+tylko  dajemy d¼wiêk naszej bezradno¶ci. Mo¿na te¿ po prostu wykomentowaæ lub
+usun±æ zaznaczone w kodzie linie - flaga INDOS nie bêdzie w ogóle sprawdzana.
+To  chyba  ju¿  wszystko  na  dzi¶,  przyk³adowy  program  jest  dzia³aj±cy i
+sprawdzony  tylko  dla  kilku  programów, nie dzia³aj±ca reszta zawiera siê w
+przypadkach opisanych powy¿ej. Powodzenia w samodzielnym eksperymentowaniu.

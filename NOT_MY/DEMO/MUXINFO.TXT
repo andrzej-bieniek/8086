@@ -1,0 +1,17 @@
+Detta är ett exempel på filinnehållet på Game-programming CD. Detta är en gammal
+demo från Future Crew, "StarPort". Lägg märke till att SP2.COM är endast 1993 bytes !! 
+
+Källkoden i Assembler bifogas. 
+
+CD:n kan beställas från MUX-Elektronik och kostar 299:-
+
+CD:n hela innehåll beskrivs på:http://www.lls.se/~mux/gamecd.html
+
+
+Nedre Kvarnbergsgatan 10
+411 05 Göteborg
+Tel/Fax 031 13 51 90
+E-mail mux@lls.se
+http://www.lls.se/~mux/
+
+

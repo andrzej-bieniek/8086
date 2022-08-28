@@ -1,0 +1,23 @@
+uses dos,crt;
+
+ var f1 : file;
+     f2 : text;
+     i,j : integer;
+     data : longint;
+
+
+ begin
+  assign(f1,'big.fnt');
+  reset(f1,1);
+  assign(f2,'font.inc');
+  rewrite(f2);
+
+  for i:=1 to 4096 div 4 do
+   begin
+    blockread(f1,data,4);
+    writeln(f2,'dd ',data);
+   end;
+  close(f1);
+  close(f2);
+ end.
+

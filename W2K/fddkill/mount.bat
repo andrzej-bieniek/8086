@@ -1,0 +1,1 @@
+filedisk /mount 0 c:\floppy.flp g:

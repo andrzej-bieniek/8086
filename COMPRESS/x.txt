@@ -1,0 +1,21 @@
+
+DisplayString(L"");
+DisplayString(L"");
+DisplayString(L"              ‹‹‹€€€≤≤≤±±±∞∞∞                         ‹‹");
+DisplayString(L"           ‹‹€€≤≤≤±±±∞∞∞                            ‹ﬂ  € ‹  €  ‹‹  €‹ﬂﬂ");
+DisplayString(L"         ‹€≤≤±±∞∞                                    €  € €  € €‹‹€ €");
+DisplayString(L"       ‹€≤±∞                         ‹‹‹              ﬂﬂ   ﬂ‹€ ﬂ‹‹  ﬂ");
+DisplayString(L"      €≤±∞                            ﬂﬂ€€‹           ‹‹           €");
+DisplayString(L"    ‹€€€€€€€€€‹‹‹             ‹‹‹€€€€€€€€≤±∞        ‹ﬂ    ‹‹  ‹ﬂﬂ‹ €");
+DisplayString(L"   ‹€€ﬂﬂ      ﬂﬂﬂ€€€‹‹‹ ‹‹‹€€€ﬂﬂﬂﬂ     ﬂﬂ€≤±∞       €    €  € €  € €‹");
+DisplayString(L"  €€€               ﬂﬂﬂ€ﬂﬂﬂ               €≤±∞       ﬂﬂﬂ ﬂ‹‹ﬂ  ﬂﬂ");
+DisplayString(L"   €€€‹         ‹‹‹ﬂ€€ﬂ‹ﬂ€≤ﬂ‹‹‹‹        ‹€€±∞    ");
+DisplayString(L"   €€€€€€€€€≤≤±±∞∞    ‹€‹  ≤±∞€€€€€€€€€€€€≤±∞                 ‹");
+DisplayString(L"   €€€€≤≤±±∞∞  ‹‹€€€€≤± €€≤±∞   ﬂﬂﬂ€€€€€€€≤±∞                € €   ‹‹");
+DisplayString(L"   €≤±∞∞     ‹€€€€€€€≤± €€≤≤±±∞  ∞    ﬂﬂ€≤±∞         €    € €‹‹€  €");
+DisplayString(L"    ﬂ   ∞∞ ‹€€€€€€€€≤±  ﬂ €≤≤±±∞    ∞∞∞ ≤∞           € € €  ﬂ   €  ﬂﬂﬂ‹");
+DisplayString(L"          ‹€€ﬂﬂﬂ‹‹‹  ﬂﬂ €ﬂ‹ ‹‹‹   ∞  ∞                ﬂ ﬂ          ﬂﬂﬂ");
+DisplayString(L"          ‹‹ €ﬂ  ±   ﬂ      ﬂ±  €ﬂ ‹‹      €   €  ‹ﬂﬂﬂ  €ﬂﬂ‹  ‹‹‹");
+DisplayString(L"           ±     ﬂ           ﬂ      ±       €‹‹€  €‹‹   €ﬂ€   €‹");
+DisplayString(L"           ﬂ                        ﬂ       €   €  €    ﬂ‹ ﬂ‹ €‹‹‹  ‹ ‹ ﬂ");
+DisplayString(L"                                                    ﬂﬂﬂ");

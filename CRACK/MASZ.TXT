@@ -1,0 +1,109 @@
+
+
+
+                            Maszynistka,  wersja 1.0
+
+                            dokumentacja do programu
+
+
+
+
+ Wymagania sprzetowe:  komputer IBM PC XT lub lepszy i kompatybilny z 640kB
+                       pamieci RAM, karta graficzna Hercules, VGA lub SVGA.
+
+
+
+                                Spis rozdzialow:
+
+                         1. O korzystaniu z programu
+                         2. O konfigurowaniu programu
+                         3. O sposobie rejestracji programu
+
+
+
+                         1. O korzystaniu z programu
+
+     Maszynistka jest to program do nauki szybkiego, bezwzrokowego pisania
+na klawiaturze komputerowej. Bez wzgledu na to, czy masz jeszcze problemy
+ze znalezieniem na klawiaturze litery A, czy tez potrafisz juz szybko pisac
+i chcialbys robic to jeszcze szybciej - program ten bedzie Ci niewatpliwie
+pomocny. Nauka z programem zostala podzielona na 3 poziomy zaawansowania,
+z ktorych kazdy zawiera szereg lekcji. Kazda lekcja sklada sie z praktycznego
+cwiczenia oraz dotyczacych go niezbednych wskazowek i wyjasnien. Po wykonaniu
+kazdego cwiczenia zostaniesz poinformowany o swoich postepach w nauce.
+     Duza zaleta indywidualnej nauki jest to, ze mozesz pracowac we wlasnym
+tempie i w dowolnie wybranym czasie. Niemniej jednak dobrze zaplanuj sobie
+czas na nauke. Postaraj sie uczyc regularnie, nie dopuszczajac do dluzszych
+przerw. Sprobuj zarezerwowac sobie na nauke kilkanascie minut co najmniej raz
+dziennie. Nie usiluj przerabiac zbyt wielu lekcji na raz. Jezeli codziennie
+opanujesz jedna lekcje, to juz po miesiacu powinienes pisac bardzo szybko
+i jedynie doskonalic swoje umiejetnosci na najwyzszym poziomie.
+
+
+
+                         2. O konfigurowaniu programu
+
+     Konfigurowalne elementy niniejszego programu, to dzwieki, kolory
+i sposob wyswietlania polskich liter. Zmian w konfiguracji mozna dokonac
+na dwa sposoby. Pierwszy z nich, sposob zalecany, to wybranie odpowiednich
+opcji z menu Konfiguracja i ustawienie wybranych parametrow. Drugi,
+"dla zaawansowanych", polega na edycji pliku MASZ.CFG i bezposredniej
+zmianie parametrow w tym pliku.
+
+     Dzwieki, jakie mozna wlaczyc badz wylaczyc w programie to:
+Dzwiek bledu (np. gdy przez pomylke zamiast Enter-a nacisniesz Space),
+Dzwiek naciskanego klawisza (podczas nauki - cwiczenia),
+Dzwiek blednie nacisnietego klawisza (rowniez podczas nauki - cwiczenia).
+
+     Wszystkie wyswietlane przez program elementy obrazow mozesz zobaczyc
+na ekranie w wybranych przez siebie kolorach - bez ograniczen.
+
+     Sposob wyswietlania na ekranie polskich liter zalezy od posiadanej
+przez Ciebie karty graficznej:
+1). VGA - emulacja programowa,
+2). Hercules z zainstalowanymi sprzetowo polskimi znakami,
+3). Karta nie umozliwiajaca wyswietlania polskich liter - wersja polskawa.
+
+    Ponadto mozna w bardzo latwy sposob zmieniac (rozszerzac) zasob
+slow, zdan i akapitow, z ktorego program czerpie material do cwiczen na
+Poziomie III. Odpowiednich zmian nalezy dokonac edytujac nastepujace pliki:
+  MASZ.L32 - material do Lekcji 32,         MASZ.L34 - material do Lekcji 34,
+  MASZ.L33 - material do Lekcji 33,         MASZ.L35 - material do Lekcji 35.
+Polskie litery sa w nich kodowane w standardzie Mazovia.
+     UWAGA: Poczatkujacym radze nie grzebac w wyzej wymienionych plikach.
+
+
+
+                         3. O sposobie rejestracji programu
+
+     Program Maszynistka w wersji 1.0 jest rozprowadzany na zasadach
+SHAREWARE. Oznacza to, iz mozesz testowac go do woli, za darmo kopiowac
+i rozdawac swoim przyjaciolom i znajomym. Jezeli spodoba Ci sie i zdecydujesz
+sie uzywac go, bedziesz moralnie i prawnie zobowiazany do zarejestrowania go
+u autora. Wowczas otrzymasz od niego zarejestrowana wersje programu,
+przedstawiajaca Ciebie jako zarejestrowanego uzytkownika oprogramowania.
+
+     Jak zarejestrowac ten program? - przyslij mi list zawierajacy:
+1. nastepujace informacje:
+     - nazwe programu: "Maszynistka 1.0",
+     - Twoje imie i nazwisko (lub nazwe instytucji),
+     - Twoj dokladny adres i numer telefonu,
+2. jedna pusta i sformatowana dyskietke na zarejestrowana wersje programu,
+3. zaadresowana do siebie samego koperte z naklejonym znaczkiem pocztowym
+   (najlepiej tekturowa w celu zabezpieczenia Twojej dyskietki),
+4. oplate rejestracyjna w wysokosci:
+   $2.00 US Dollars (a najlepiej ich rownowartosc w polskich zlotych) -
+                                                            - osoba prywatna,
+   $20.00 US Dollars (lub ich rownowartosc w polskich zlotych) - instytucja
+(piszac "instytucja", mam na mysli szkoly, uczelnie, firmy itp. Z programu
+zakupionego dla instytucji moga korzystac wszystkie osoby nalezace do niej.
+Na przyklad, jezeli program jest wlasnoscia szkoly, to moga z niego korzystac
+wszyscy uczniowie i nauczyciele - ale tylko w szkole - nie w domu!).
+
+     Oto moj adres (do rejestracji i jakiejkolwiek korespondencji):
+                                                         Maciej Szewczuk
+                                                     ul. Bialopradnicka 17/20
+                                                          31-221 Krakow
+
+     Bede wdzieczny za wszelkie sugestie dotyczace zmian w ewentualnych
+nowych wersjach programu - autor.

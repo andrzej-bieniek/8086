@@ -1,0 +1,189 @@
+Asembler
+
+Wyb¢r systemu operacyjnego podczas startu komputera 
+
+Marcin Kamiäski
+
+Mo¾liwo˜† zainstalowania na twardym dysku a¾ czterech 
+system¢w operacyjnych jest bezsprzecznie wielkim dobrodziejstwem. 
+Jednak wynikaj¥ca z tego konieczno˜† u¾ywania np. DOS-owego FDISK-a 
+czy te¾ jego odpowiednika w innych systemach jest niechybnie olbrzymi¥ 
+niedogodno˜ci¥. Dlatego te¾, w celu zwi©kszenia komfortu pracy, 
+proponuj© czytelnikom tak zmodyfikowa† program ˆaduj¥cy, mieszcz¥cy si© 
+na pierwszym sektorze twardego dysku, aby przy ka¾dym uruchomieniu 
+komputera??? mo¾na byˆo wskazywa†, kt¢rego systemu operacyjnego chcemy 
+u¾y†. 
+
+Jak komputer ˆaduje system operacyjny?
+
+Wˆa˜ciwie bardzo szybko i prosto. Tu¾ po wˆ¥czeniu zasilania 
+czy te¾ restarcie komputera program, kt¢rego zadaniem jest maszyn© 
+odpowiednio przygotowa† do pracy, przeprowadza wszelkie stosowne 
+procedury, np. POST, inicjalizacja tablicy wektor¢w przerwaä. Gdy ju¾ 
+wszelkie niezb©dne operacje zostan¥ wykonane, BIOS stara si© zaˆadowa† 
+system operacyjny z kt¢rego˜ z dyskowych nap©d¢w: najpierw ze stacji 
+dysk¢w elastycznych, a gdy to si© nie powiedzie (np. nie ma dyskietki 
+w stacji dysk¢w; nowsze BIOS-y maj¥ opcj© zaniechania pr¢by 
+odczytu z nap©du dysk¢w elastycznych) - z twardego dysku. 
+adowanie systemu polega na wczytaniu pod adres 0000:7C00h pierwszego 
+sektora dyskietki b¥d« dysku (master boot sector). Je¾eli jest on 
+poprawny - dwa ostatnie bajty zawieraj¥ odpowiednio warto˜ci: 
+AAh, 55h - to sterowanie jest oddawane zaˆadowanemu programowi przez 
+przej˜cie pod adres 0000:7C00h. W przypadku dyskietek rola 
+programu ˆaduj¥cego zwykle na tym si© koäczy, poniewa¾ nie s¥ one dzielone na 
+partycje i pierwszy sektor dyskietki jest zwykle sektorem ˆaduj¥cym 
+(boot sector) odpowiedniego systemu. 
+
+Inaczej ma si© sprawa z twardymi dyskami. Je˜li jeden sektor twardego 
+dysku, jak to przewa¾nie ma miejsce, zawiera 512 bajt¢w, to w 
+pierwszych 446 bajtach mie˜ci si© ci¥g rozkaz¢w kodu maszynowego (nie 
+musi, rzecz jasna, zajmowa† caˆej tej przestrzeni), kolejne 64 bajty 
+(4^x16 bajt¢w) zajmuje tablica partycji, a pozostaˆe dwa - wspomniana ju¾ 
+sygnatura poprawno˜ci. Tablica partycji zbudowana jest z czterech 
+rekord¢w (patrz tabela), z kt¢rych ka¾dy, licz¥cy po 16 bajt¢w, 
+opisuje jedn¥ partycj©. Na ka¾dej partycji sektor wskazany jako 
+pierwszy jest zwykle sektorem ˆaduj¥cym znajduj¥cego si© 
+na tej cz©˜ci dysku systemu operacyjnego. Tote¾ programy znajduj¥ce 
+si© na startowym sektorze twardego dysku dziaˆaj¥ zwykle wedˆug 
+nast©puj¥cego schematu: 
+
+l relokacja kodu programu pod adres 0000:0600h;
+
+l sprawdzenie, czy kt¢ra˜ z partycji jest aktywna; je¾eli takiej nie 
+odnaleziono, przez przerwanie 18h zostaje wywoˆany ROM Basic, co w 
+komputerach nowszych (kt¢re nie maj¥ wbudowanego Basica) koäczy 
+si© np. ponownym uruchomieniem systemu;
+
+l pierwszy sektor aktywnej partycji zostaje zaˆadowany pod adres 
+0000:7C00h i je˜li ostatnie dwa bajty speˆniaj¥ przepisany warunek,
+nast©puje skok pod wymieniony przed chwil¥ adres; rejestry ds:si musz¥ 
+wskazywa† na adres aktywnej partycji w pami©ci. 
+
+Jak to zmieni†? 
+
+Mo¾na jednak pokusi† si© o zmodyfikowanie tego schematu. 
+Czyni to na przykˆad zamieszczony na wydruku, napisany w asemblerze 
+program. W momencie jego uruchomienia, czyli chwil© po zaˆadowaniu do 
+pami©ci z pierwszego sektora dysku, relokuje si© on pod nowy adres 
+(0000:0600h). Nast©pnie sprawdza, ile dysk¢w jest zainstalowanych w 
+systemie i wy˜wietla menu. P¢«niej, przez ustalony czas, oczekuje na 
+wyb¢r (wci˜ni©cie odpowiedniego klawisza) partycji b¥d« dysku, z 
+kt¢rego ma nast¥pi† start komputera. Po wybraniu odpowiedniej partycji 
+(o dodatkowych dyskach za chwil©), program ustawia j¥ jako aktywn¥ i 
+tak zmodyfikowan¥ tablic© partycji, a wˆa˜ciwie caˆy pierwszy sektor, 
+zapisuje na dysku. Dlaczego tak czyni? Ot¢¾ niekt¢re systemy (pisz© 
+tak na podstawie mych do˜wiadczeä z SCO Unix) nie tylko kontroluj¥ 
+ustawienie ds:si, ale i sprawdzaj¥, czy rzeczywi˜cie (na dysku!) 
+partycja, z kt¢rej zostaˆy uruchomione (co??) jest aktywna. 
+
+M¢j program jest wi©c czym˜ w rodzaju FDISK-a zapisanego w startuj¥cym 
+sektorze. Je˜li u¾ytkownik komputera miaˆby ochot© 
+wystartowa† system z innego dysku, to program zaˆaduje do pami©ci 
+zamiast pierwszego sektora wybranej partycji - pierwszy sektor wybranego 
+twardego dysku (ten powinien r¢wnie¾ by† odpowiednio zmodyfikowany; 
+to samo dotyczy DOS-owej partycji rozszerzonej i wywoˆywania systemu 
+z dysku logicznego; modyfikacja mo¾e polega† chocia¾by na wgraniu na 
+pierwszy sektor dysku czy partycji mojego programu). Je˜li przez 
+ustalony czas nie zostanie wci˜ni©ty ¾aden klawisz, to program 
+uruchamia partycj© o ustalonym wcze˜niej numerze. Numer ten jest zapisany 
+w bajcie poprzedzaj¥cym tablic© partycji (nie mogˆem wykorzysta† 
+do tego celu "normalnego" miejsca, poniewa¾ program je modyfikuje). Do 
+odliczania upˆywaj¥cego czasu u¾yˆem licznika zegara systemowego, 
+kt¢rego warto˜† ro˜nie o jeden co okoˆo 18 milisekund. Gdy co˜ si© nie 
+powiedzie, program wy˜wietla komunikat: "ERROR". Niestety 
+bardziej szczeg¢ˆowe wyja˜nienia, cho† z punktu widzenia u¾ytkownika 
+niew¥tpliwie po¾¥dane, poci¥gaj¥ za sob¥ wydˆu¾enie kodu programu. A 
+nale¾y pami©ta†, ¾e program ma do dyspozycji 445 bajt¢w (plus jeden 
+jako wska«nik aktywno˜ci). Chc© r¢wnie¾ przestrzec czytelnik¢w, ¾e 
+jakikolwiek bˆ¥d w programie ˆaduj¥cym mo¾e udaremni† uruchomienie 
+komputera. Nim wi©c przyst¥pimy do pracy z programem, musimy
+zachowa† w bezpiecznym miejscu (a najlepiej w kilku miejscach!) star¥ 
+tablic© partycji wraz z programem umo¾liwiaj¥cym jej skopiowanie na 
+pierwszy sektor dysku. Je˜li wszystko si© uda, mog© przyrzec 
+czytelnikom tak¥ wygod© i komfort pracy, jakich jeszcze nigdy nie 
+zasmakowali. 
+
+Czytelnicy, kt¢rzy maj¥ kontakt z systemem operacyjnym Windows 95, 
+zapewne zauwa¾yli, ¾e na twardym dysku poczyna on sobie do˜† 
+swawolnie: bez jakiejkolwiek aprobaty u¾ytkownika zapisuje w gˆ¢wnym 
+katalogu (i nie tylko) du¾o wˆasnych plik¢w, zakˆada nowe katalogi 
+itp. Mimo i¾ pracuj© pod kontrol¥ Windows 95, czasami mam r¢wnie¾ 
+ochot© obejrze† i dos-owe "C:>", co Windows 95 znakomicie 
+utrudnia. Nie chciaˆem jednak z tego powodu rozstawa† si© z najnowszym 
+osi¥gni©ciem my˜li informatycznej... Dlatego ch©tnie po˜wi©ciˆem mu 
+osobn¥ partycj©, aby tam m¢gˆ sobie rz¥dzi†; dla siebie zostawiˆem 
+standardowego DOS-a. Problem polega jednak na tym, ¾e Windows 95 
+pracuje niejako na podbudowie DOS, a FDISK nie pozwala na utworzenie
+dwu r¢wnorz©dnych partycji (jedna startowa, druga rozszerzona). Na 
+szcz©˜cie mo¾na sobie z tym poradzi†. Nale¾y podzieli† dysk na dwie 
+partycje DOS-owe: pierwsz¥ i rozszerzon¥, a nast©pnie - za pomoc¥ 
+jednego z edytor¢w dyskowych (np. DISKEDIT z Norton Utilities 8.0) - 
+zmieni† status obu partycji na taki sam. Na przykˆad obie partycje 
+ustawi† jako BIGDOS (06h) albo DOS-16 (04h). Powstaˆe 
+dyski logiczne nale¾y sformatowa† i przenie˜† naä pliki systemowe. 
+Potem mo¾na ju¾ instalowa† Windows 95 na jednej, a DOS na drugiej z 
+utworzonych w partycji. W ten spos¢b, korzystaj¥c np. z mojego 
+programu mo¾na uruchamia† komputer raz pod kontrol¥ Windows 95, 
+raz DOS-a. 
+
+Literatura: 
+
+[1] Mariusz Ostrowski, "Master boot sector", PCkurier 15/93, str. 132-
+133. 
+
+[2] Zbigniew Jasiak, "PC/XT/AT. Najwa¾niejsze dane i tabele." 
+
+
+Rekord opisuj¥cy partycj© 
+
+Nazwa pola	Dˆugo˜† (w bajtach)	Uwagi 
+
+Flaga aktywno˜ci: 00h=nieaktywna	1	80h=aktywna
+
+Pozycja pocz¥tkowa: gˆowica	1	sektor 1    
+
+cylinder	1	 
+
+Rodzaj partycji		100h - nieu¾ywana 
+
+		01h - DOS 12 
+
+		02h - XENIX 
+
+		03h - XENIX 
+
+		04h - DOS 16 
+
+		05h - EXTEND 
+
+		06h - BIGDOS 
+
+		0Ah - BOOT MANAGER 
+
+		50h - DISK MANAGER 
+(DM) 
+
+		51h - DISK MANAGER 
+(DM) 
+
+		53h - DISK MANAGER 
+(DM) 
+
+		63h - UNIX 
+
+		64h - NET286 
+
+		65h - NET386 
+
+		DBh - CP/M 
+
+
+Pozycja koäcowa: gˆowica	1	sektor 1       
+
+cylinder	1	 
+
+Liczba sektor¢w (relatywnie)	4 
+
+Liczba sektor¢w (og¢lnie)	4 
+
+

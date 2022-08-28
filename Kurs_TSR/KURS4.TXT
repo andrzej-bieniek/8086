@@ -1,0 +1,168 @@
+                MINI KURS PISANIA PROGRAMÓW TSR W ASEMBLERZE
+
+4. WADY I ZALETY MULTIPLEX INTERRUPT
+
+     Na  pocz±tku  wyja¶nijmy  sobie o co w ogóle chodzi w tytule tej czê¶ci.
+Otó¿ Multiplex Interrupt jest to jedno z przerwañ programowych (to znaczy nie
+wywo³ywanych  przez  sprzêt,  jak  np.  przerwanie  zegara, ale tylko poprzez
+instrukcjê  int).  Ma  numer 2fh i s³u¿y do bardzo wielu przydatnych rzeczy a
+w szczególno¶ci niesie pomoc w programach rezydentnych. Ca³a istota Multiplex
+Interrupt  (w  skrócie  MxI)  polega  na  utworzeniu  "³añcucha",  do którego
+dopinaj±  siê  kolejne  programy  wykorzystuj±ce  je - TSRy. Ka¿dy program ma
+przydzielony swój numer identyfikacyjny, po którym mo¿e poznaæ, czy odwo³anie
+MxI  dotyczy  tego  rezydenta,  czy jakiego¶ innego. W trakcie instalacji TSR
+odczytuje  wektor  przerwania  2fh  i  ustawia nowy na swoj± procedurê. Teraz
+kiedy  przyjdzie  przerwanie i w rejestrze AH jest jego numer identyfikacyjny
+to  oznacza,  ¿e  do  niego przysz³o zlecenie (o tym bêdzie dalej) i on je ma
+obs³u¿yæ.  Je¿eli  w  AH jest inny numer, TSR przekazuje sterowanie pod stary
+adres  (zapamiêtany  podczas  instalacji).  Powy¿sze  t³umaczenie  jest  do¶æ
+zawi³e, dlatego podam trochê konkretów:
+
+Przerwanie 2Fh
+Nazwa:          Obs³uga równoczesnych procesów
+Wywo³anie:      AH = numer procesu (czyli ID TSRa)
+                     01h  - rezydentna czê¶æ polecenia PRINT
+                     02h  - rezydentna czê¶æ polecenia ASSIGN
+                     03h  - rezydentna czê¶æ polecenia SHARE
+                     80h-0ffh - dostêpne dla innych procesów
+                AL = 0
+Powrót:         AL - stan zainstalowania
+                     00h  - nie zainstalowany, mo¿na zainstalowaæ
+                     01h  - nie zainstalowany, nie mo¿na zainstalowaæ
+                     0ffh - zainstalowany
+
+Opis:           Przerwanie    organizuje    równoczesn±    pracê    programów
+                rezydentnych   dostêpnych  z  dowolnego  procesu.  Pierwotnie
+                dotyczy³o  tylko  polecenia  systemowego  PRINT. Ka¿dy proces
+                instaluje  siê  w  kolejce  (poprzez  kolejne przechwytywanie
+                tego  przerwania).  W  przypadku  wywo³ania  zlecenia  proces
+                sprawdza,  czy  zlecenie  go  dotyczy,  je¶li  nie  to oddaje
+                sterowanie   poprzedniemu   w   kolejce.   W   rejestrze   AL
+                przekazywany  jest kod zlecenia. Standardowo zlecenie numer 0
+                oznacza pytanie o to, czy program jest zainstalowany.
+
+Z powy¿szego opisu widzimy, jak prosta jest zasada dzia³ania MxI, wszystkie
+rezydentne polecenia DOSu maj± wbudowan± obs³ugê swoich funkcji przez to
+przerwanie (np. mo¿emy poleceniu PRINT kazaæ zatrzymaæ wszystkie wydruki znaj±c
+numer zlecenia, które mamy mu przekazaæ), na przyk³ad:
+
+  mov  ax,0103h    ; 01-PRINT, 03-zatrzymanie drukowania
+  int  2fh
+
+     Dzia³anie Multiplex Interrupt w naszym rezydencie zale¿y tylko od naszej
+inwencji,  poza  oczywi¶cie  zleceniem  nr 0, które ma przekazaæ informacjê o
+zainstalowaniu  programu.  Wtedy  mo¿emy  stwierdziæ,  czy  TSR jest obecny w
+pamiêci,  pomimo  ¿e  po  nim  by³ instalowany inny program rezydentny, który
+równie¿  przechwyci³  to  samo  przerwanie (w przypadku sekundnika przerwanie
+zegara).  Poza  tym  mo¿emy  dodaæ  równie¿  nasze  nowe zlecenia, np. zmiana
+kolorów  cyfr  bez  reinstalacji  programu, podawanie segmentu, w którym jest
+obecny  kod  TSRa i tak dalej. Przyk³adów mo¿na znale¼æ bez liku, je¶li tylko
+dysponuje  siê  rozwiniêt± wyobra¼ni±. W naszym nowym przyk³adowym rezydencie
+(ile  razy mo¿na obrabiaæ i ulepszaæ sekundnik?) zastosujemy procedurê, która
+bêdzie "wra¿liwa" na ID procesu nr 90h (dlaczego tak? wymy¶li³o mi siê, mo¿na
+podaæ  numer  od  80h  w górê) i zlecenia nr 0 oraz 1. Czasem takie za³o¿enia
+mog±  nie  przynie¶æ  spodziewanych rezultatów, gdy w pamiêci bêdzie inny TSR
+reaguj±cy  równie¿  na  numer 90h - przy takich obawach mo¿na napisaæ funkcjê
+przeszukuj±c±  kolejne  numery  od  80h (sprawdzamy zleceniem 0, czy rezydent
+jest  zainstalowany)  i  zatrzymuj±c±  siê  na  pierwszym  wolnym.  My jednak
+przyjmiemy,  ¿e  90h  jest  dla  nas  wystarczaj±cy  i  nic siê nie powtórzy.
+Zlecenie  nr 0 bêdzie s³u¿y³o do sprawdzania, czy nasz rezydent jest obecny w
+pamiêci  (czyli  bêdziemy w AL zwracaæ 0ffh) oraz przy okazji czytania numeru
+segmentu,  w  jakim jest on zainstalowany (zwracamy w BX). Natomiast zlecenie
+nr  1  bêdzie  nam  podawaæ  w ES:DI adres ci±gu znaków (zakoñczonego znakiem
+dolara,  tak  jak  w  napisach  w  DOSie)  z wersj± zainstalowanego TSRa. Sam
+program  rezydentny  bêdzie  realizowa³ trywialne zadanie - podepniemy go pod
+przerwanie  klawiatury  i  przy ka¿dym naci¶niêciu klawisza bêdzie generowany
+d¼wiêk  o  d³ugo¶ci  zale¿nej  od  czasu  naci¶niêcia  (czyli po stwierdzeniu
+naci¶niêcia  w³±czymy  d¼wiêk  PC  Speakera, a przy puszczeniu wy³±czymy). Do
+tego bêdzie jeszcze aktywna kombinacja Alt-Ctrl-Ins, prze³±czaj±ca nam d¼wiêk
+(na  zasadzie  w³±czony  -  wy³±czony  -  w³±czony itd). I znów to samo - sam
+program nie jest przeznaczony do u¿ywania w konkretnych celach (czy sekundnik
+komu¶ siê do czego¶ przyda³?), ale do zobrazowania technik pisania TSRów.
+
+     Przy  usuwaniu  programu  rezydentnego  z  pamiêci (nazwijmy go roboczo:
+beep)  nale¿y  pamiêtaæ o sprawdzeniu MxI, czy TSR jest obecny, jak równie¿ o
+odczytaniu wektora przerwania klawiatury (int 9h), poniewa¿ nie mo¿emy usun±æ
+TSRa  i  odtworzyæ wykorzystywanych przez niego przerwañ, kiedy po nim zosta³
+zainstalowany  inny  rezydent  (bo  w  ten  sposób  odciêliby¶my  od "funkcji
+¿yciowych"  równie¿  ten  inny  program). Jednak jest na to sposób - odcinamy
+tylko   dzia³anie   kliku   i   kombinacji  Alt-Ctrl-Ins  poprzez  ustawienie
+odpowiedniej  flagi  w  obszarze  TSRa (mo¿na by by³o te¿ po to wymy¶liæ nowe
+zlecenie  MxI,  ale  po co kombinowaæ, gdy po odczytaniu numeru segmentu kodu
+zleceniem  0  mamy  dostêp  do  obszaru  zmiennych  beepa),  nazywa  siê  ona
+'niemamnie' i gdy nie jest równa 0 to TSR zachowuje siê tak, jakby go w ogóle
+nie  by³o. Gdyby beep rezerwowa³ sobie dodatkowe bloki pamiêci nale¿a³o by je
+równie¿ zwolniæ. Pamiêtajmy równie¿ o tym, aby w czasie instalacji sprawdziæ,
+czy  przypadkiem  ju¿  wcze¶niej  beep  nie  by³  instalowany, a je¿eli tak -
+wy¶wietliæ stosowny komunikat, no i oczywi¶cie zwolniæ blok pamiêci zajmowany
+przez ¶rodowisko programu. Nasz TSR nie bêdzie tym razem sprawdza³ parametrów
+podanych w linii poleceñ w poszukiwaniu 'u', natomiast po uruchomieniu bêdzie
+siê  instalowa³  w  pamiêci,  a  po  powtórnym  uruchomieniu  -  usuwa³  (lub
+dezaktywowa³).
+
+     Po  wywo³aniu  przez  system  przerwania  klawiatury, pod które jeste¶my
+podpiêci  mo¿emy  odczytaæ  kod wci¶niêtego klawisza z portu 60h (in al,60h),
+jest  to tzw. scan-code klawisza, czyli najogólniej mówi±c jego kolejny numer
+na  klawiaturze.  Klawisz  Insert  ma  scan-code równy 52h, natomiast ten sam
+klawisz  przy  zwolnieniu  wysy³a  kod o 80h wiêkszy (z ustawionym najwy¿szym
+bitem),  czyli  0d2h.  Klawiatura  rozszerzona  101-klawiszowa wysy³a ponadto
+dodatkowe  kody informuj±ce, czy naci¶niêto Ins z klawiatury numerycznej, czy
+szary  Ins  z  dodatkowego bloku - jest wtedy przed scan-code klawisza Insert
+wysy³any  kod  0e0h  -  my  po odebraniu takiego kodu przekazujemy sterowanie
+bezpo¶rednio  do oryginalnej procedury. W programie beep bêdziemy reagowaæ na
+puszczenie  klawisza  Insert  ze  wzglêdu  na  samopowtarzanie  przy d³u¿szym
+naci¶niêciu (gdyby TSR reagowa³ na naci¶niêcie, obserwowaliby¶my naprzemienne
+w³±czanie  i wy³±czanie funkcji programu). Fakt wci¶niêcia jednocze¶nie Alt i
+Ctrl  rozpoznamy  badaj±c  obszar zmiennych BIOSu (komórka 0:417h, bity 2 i 3
+ustawione,   traktowa³a   o  tym  szerzej  czê¶æ  3  kursu).  Po  rozpoznaniu
+"korzystnej"   kombinacji   (Alt-Ctrl-Ins)   zmieniamy  warto¶æ  wewnêtrznego
+prze³±cznika  (zmienna  flipflop), po czym zwracamy sterowanie do oryginalnej
+procedury obs³ugi przerwania klawiatury. Gdyby¶my nie chcieli tego robiæ (np.
+przechwyciæ  i  "zdusiæ"  wszystkie  naci¶niêcia  klawisza X) i nie przesy³aæ
+sterowania  pod  oryginalny adres (czyli do poprzedniego programu do³±czonego
+do  int  9h, a w koñcu do procedury w BIOSie wpisuj±cej kod ASCII klawisza do
+bufora klawiatury), nale¿a³oby wykonaæ nastêpuj±cy fragment kodu, wymagany do
+poprawnego powrotu do g³ównego programu instrukcj± iret:
+
+  in   al,61h      ;+ znak dla kontrolera klawiatury, ¿e zakoñczyli¶my
+  mov  ah,al       ;+ obs³ugê przerwania
+  or   al,80h      ;+
+  out  61h,al      ;+
+  mov  al,ah       ;+
+  out  61h,al      ;+
+  mov  al,20h      ;- znak dla kontrolera przerwañ
+  out  20h,al      ;- (tzw. EOI - End Of Interrupt)
+
+Do w³±czania d¼wiêku w g³o¶niku s³u¿± instrukcje:
+
+  in   al,61h
+  or   al,3        ; ustawiamy bity: 0 i 1
+  out  61h,al
+
+Do wy³±czania:
+
+  in   al,61h
+  and  al,0fch     ; zerujemy bity: 0 i 1
+  out  61h,al
+
+     Na  pocz±tku  w  trakcie instalacji TSRa mo¿emy jeszcze ustawiæ wysoko¶æ
+d¼wiêku  wysy³aj±c  2  bajty  warto¶ci  licznika do timera (który obs³uguje i
+zegar,   i   generator   g³o¶nika).   Warto¶æ  licznika  to:  1193181/f,  f -
+czêstotliwo¶æ  d¼wiêku.  Z  tego wynika, ¿e chc±c ustawiæ wysoko¶æ d¼wiêku na
+440  Hz  nale¿y  ustawiæ licznik na 1193181/440 = 2712, czyli 0a98h. Wysy³amy
+kolejno:  kod  operacji  (0b6h) do portu 43h, nastêpnie m³odszy bajt licznika
+(98h) do portu 42h, a potem starszy bajt (0ah):
+
+  mov  al,0b6h
+  out  43h,al
+  mov  al,98h
+  out  42h,al
+  mov  al,0ah
+  out  42h,al
+
+     W  naszym  przyk³adowym  programie  beep  mo¿liwo¶æ ustawienia wysoko¶ci
+d¼wiêku  nie  zosta³a  wykorzystana,  mo¿ecie  to zrobiæ w swoich programach.
+Mo¿na  te¿  równie¿  pokusiæ  siê  o  napisanie  rezydenta,  który  po ka¿dym
+naci¶niêtym  klawiszu  bêdzie zmienia³ wysoko¶æ tonu, bior±c j± na przyk³ad z
+tablicy.  Wtedy  przy  pisaniu tekstu komputer bêdzie gra³ muzykê! To tyle na
+dzi¶, zobaczymy, co przyniesie kolejny odcinek.

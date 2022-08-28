@@ -1,0 +1,14 @@
+A Very small PCX file viewer for 320x200x256 images
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Size    : 98 bytes
+Code    : ASM
+Compiler: TASM
+====================================================
+Rezaul Kabir
+Kaifnet Services
+shuvro@kaifnet.com
+====================================================
+
+Uruchomienie:
+
+z linii komend wpisz : pcx98.com nazwa_pliku.pcx

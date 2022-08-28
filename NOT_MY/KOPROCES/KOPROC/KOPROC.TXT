@@ -1,0 +1,84 @@
+Turbo Pascal
+
+Koprocesor arytmetyczny
+
+Adam Ganowicz
+
+Wiele programist¢w, zwˆaszcza pocz¥tkuj¥cych, pisz¥cych w 
+Turbo Pascalu narzeka na powolno˜† dziaˆania funkcji matematycznych 
+operuj¥cych na liczbach rzeczywistych. W przypadku braku koprocesora 
+arytmetycznego jest to nieuniknione, ale nawet posiadacze NPU nie mog¥ 
+w peˆni wykorzysta† jego mo¾liwo˜ci. 
+
+Dzieje si© tak mi©dzy innymi dlatego, ¾e kompilator Turbo Pascala (nawet w 
+wersji 7.0) generuje kod binarny najwy¾ej dla procesora 286 
+(287), natomiast dopiero koprocesor 387 udost©pnia rozkazy wyznaczaj¥ce na 
+przykˆad sinus i cosinus. Pascal oblicza te funkcje wˆasnym algorytmem, co 
+trwa kilka razy dˆu¾ej. 
+
+Podobnie obliczany jest arcus tangens, cho† rozkaz FPATAN istnieje ju¾ w 
+koprocesorze 287, za˜ funkcji tangens w og¢le nie ma. Brakuje tak¾e 
+procedur do wyznaczania tak wa¾nych warto˜ci, jak pot©ga lub logarytm o 
+dowolnej podstawie. Programista musi zatem sam je napisa†, korzystaj¥c z 
+funkcji ju¾ istniej¥cych oraz odpowiednich przeksztaˆceä matematycznych. 
+
+Wszystko to w znacz¥cy spos¢b wpˆywa na szybko˜† wykonywania program¢w 
+realizuj¥cych takie zadania, jak np. obroty figur, wykresy funkcji 
+matematycznych, generowanie zbior¢w fraktalnych. Jedynym wyj˜ciem dla 
+programist¢w, kt¢rym zale¾y na czasie i kt¢rzy maj¥ koprocesor 
+arytmetyczny, jest napisanie wˆasnych procedur w j©zyku niskiego 
+poziomu. 
+
+Funkcje, kt¢re zaprezentuj©, napisaˆem w Borland Pascalu 7.0 
+u¾ywaj¥c wbudowanego w ten j©zyk asemblera. Dziaˆaj¥ one nawet kilkakrotnie 
+szybciej od ich borlandowskich odpowiednik¢w. 
+
+Parametry oraz warto˜ci przez nie zwracane s¥ 10-bajtowego typu Extended, 
+ale mo¾na go zmieni† na 4-bajtowy Single lub 8-bajtowy Double (w gr© nie 
+wchodzi jednak typ Real, kt¢ry nie jest wspierany przez NPU) - nale¾y w¢wczas 
+w tre˜ci procedury SinCos w odpowiednim miejscu wpisa† zamiast PTR TBYTE - 
+PTR DWORD lub PTR QWORD. Wi¥¾e si© to z przyspieszeniem dziaˆania (mniej 
+bajt¢w jest przesyˆanych mi©dzy pami©ci¥ operacyjn¥ a stosem koprocesora), 
+ale i ze zmniejszeniem precyzji pami©tanych liczb. 
+
+Rezultaty s¥ przekazywane na zewn¥trz funkcji na stosie koprocesora. Kontakt 
+z pami©ci¥ operacyjn¥ nast©puje tylko w momencie pobrania parametr¢w 
+(wyj¥tkiem jest procedura SinCos). 
+
+W przypadku rozkaz¢w FSIN, FCOS oraz FSINCOS, kt¢rych symboli nie rozpoznaje 
+kompilator BP7, u¾yˆem dyrektywy DB, aby wprowadzi† do programu ich kod 
+maszynowy. 
+
+Mam nadziej©, ¾e poni¾szy unit pomo¾e czytelnikom w wi©kszym stopniu 
+wykorzysta† mo¾liwo˜ci ich sprz©tu i posˆu¾y jako wz¢r przy pisaniu innych, 
+podobnych funkcji. Mo¾na go na przykˆad prze˜ledzi†, u¾ywaj¥c Turbo Debuggera 
+z wˆ¥czonym podgl¥dem stosu koprocesora i na wˆasne oczy zobaczy† efekt 
+dziaˆania poszczeg¢lnych instrukcji. 
+
+Na koniec jeszcze kilka wskaz¢wek dla tych, kt¢rzy chc¥ pisa† programy z 
+wykorzystaniem koprocesora. 
+
+l Przede wszystkim ustawcie dyrektyw© generowania kodu dla NPU ($N+) i 
+wyˆ¥czcie emulacj© koprocesora ($E-). 
+
+l Nie u¾ywajcie typu Real, ale jeden z wy¾ej wymienionych (Pascal 
+wykonuje konwersje na typ wspierany przez koprocesor, a to zabiera 
+cenne chwile). 
+
+l Starajcie si© nie u¾ywa† zmiennych pomocniczych typu rzeczywistego. 
+Najlepiej wszystkie operacje matematyczne zapisujcie w jednym dziaˆaniu - 
+program operuje w¢wczas jedynie na stosie koprocesora, a dopiero ostateczny 
+wynik wpisuje do pami©ci. 
+
+l Krytyczne fragmenty programu piszcie w asemblerze. 
+
+l Po ostatecznym przetestowaniu programu wyˆ¥czcie kontrol© zakres¢w ($R-) 
+oraz stosu ($S-). 
+
+Literatura:
+
+Michaˆ Tuszyäski, Ryszard Goczyäski: "Koprocesory arytmetyczne 80287 i 80387 
+oraz jednostka arytmetyki zmiennoprzecinkowej mikroprocesora i486", 
+Komputerowa Oficyna Wydawnicza HELP, Warszawa 1992. 
+
+

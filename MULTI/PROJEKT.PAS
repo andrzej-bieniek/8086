@@ -1,0 +1,172 @@
+uses crt;
+
+
+
+var c:string;
+    v:byte;
+Procedure FastWrite(s:string;x,y:word;Attr:byte);assembler;
+{Writes a string directly to the textscreen; Color only
+   input: s               - string : string to display
+          x               - word   : column
+          y               - word   : row
+          Attr            - byte   : attribute for string
+  output: -                                   }
+
+asm
+   push ds            {TP7 doesn't save DS    }
+   mov ax,y           {Get row                }
+   dec ax             {Convert to zero-based  }
+   mov dx,80          {80 columns             }
+   mul dx             {Multiply row with 80   }
+   dec ax             {Convert to zero-based  }
+   add ax,x           {Get column             }
+   shl ax,1           {Multiply by 2          }
+   mov si,ax          {Save it in SI          }
+
+   mov ax,0B800h      {Value of text-segment  }
+   mov es,ax          {Save it in ES          }
+   xor cx,cx          {Clear CX               }
+   lds di,s           {Load location of string}
+   mov cl,ds:[di]     {Get length of string   }
+   mov bh,attr        {Get attribute          }
+
+@w:inc di             {Increment DI           }
+   mov bl,ds:[di]     {Get next char of string}
+   mov es:[si],bx     {Put on the screen      }
+   inc si             {Increment SI twice     }
+   inc si
+   loop @w            {Loop CX times          }
+   pop ds             {Pop DS back            }
+end;
+
+
+
+ Procedure clrdisk(x,y:byte);
+  var c,a:byte;
+   begin
+    for a:=1 to 11 do
+    for c:=1 to 24 do
+     begin
+      FastWrite('Û',x+c-6,y+a,$0);
+     end;
+   end;
+
+ Procedure bdisk(x,y:byte);
+  var c,a:byte;
+   begin
+
+
+    for a:=1 to 4 do
+    for c:=1 to 8 do
+     begin
+      FastWrite('Û   ',x+c,y+a,$87);
+      FastWrite('Û   ',x+12,y+a,$87);
+     end;
+
+    for c:=1 to 3 do
+     begin
+      FastWrite('ß',x+c+8,y+a-3,$87);
+      FastWrite('Ü',x+c+8,y+a+3-3,$87);
+     end;
+
+    for a:=1 to 5 do
+    for c:=1 to 3 do
+     begin
+      FastWrite('Û',x+C+12,y+a,$01);
+     end;
+
+  end;
+
+ Procedure disk(x,y:byte);
+  var c,a:byte;
+   begin
+    for a:=1 to 11 do
+    for c:=1 to 24 do
+     begin
+      FastWrite('Û',x+c-6,y+a,$01);
+     end;
+
+
+    for a:=1 to 4 do
+    for c:=1 to 8 do
+     begin
+      FastWrite('Û',x+c,y+a,$07);
+      FastWrite('Û',x+12,y+a,$07);
+     end;
+
+
+    for c:=1 to 3 do
+     begin
+      FastWrite('ß',x+c+8,y+a-3,$17);
+      FastWrite('Ü',x+c+8,y+a+3-3,$17);
+     end;
+
+   FastWrite('Ü',x+13,y+1,$01);
+   FastWrite('Ü',x+18,y+1,$01);
+
+   FastWrite('ß',x+17,y+11,$10);
+   FastWrite('ß',x-4,y+11,$10);
+
+   FastWrite(''+#24,x-4,y+2,$10);
+   for c:=1 to 4 do
+   FastWrite(''+#179,x-3,y+c,$19);
+
+    for a:=1 to 6 do
+    for c:=1 to 18 do
+     begin
+      FastWrite('Û',x+c-3,y+a+5,$0f);
+     end;
+
+
+      FastWrite('  Multi System  ',x-1,y+a+1,$f0);
+
+      FastWrite('  Disk ver 1.0   ',x-1,y+a+3,$f0);
+
+   end;
+
+  var tim:byte;
+
+ begin
+  clrscr;
+  gotoxy(1,24);
+  disk(15,5);
+
+  FastWrite(' Multi System Disk v1.0 - zaprojektowany i wykonany przez M$(1998).                ',1,25,$1f);
+
+  FastWrite('Wybierz system operacyjny: ',41,9,$07);
+
+
+{  repeat}
+
+  FastWrite(' MS-DOS ver 6.22            ',41,11,$07);
+  FastWrite(' Windows 95 ver 4.00.1111 ',41,12,$7f);
+  repeat until readkey<>#0;
+  FastWrite(' MS-DOS ver 6.22          ',41,11,$7f);
+  FastWrite(' Windows 95 ver 4.00.1111 ',41,12,$07);
+  repeat until readkey<>#0;
+{  until readkey=#13;}
+
+  FastWrite(' MS-DOS ver 6.22            ',41,11,$00);
+  FastWrite(' Windows 95 ver 4.00.1111 ',41,12,$00);
+  FastWrite('Wybierz system operacyjny: ',41,9,$00);
+  FastWrite('                                                                                   ',1,25,$07);
+
+  clrdisk(15,5);
+  for v:=1 to 20 do
+   begin
+    disk(14+v,5);
+    repeat until (port[$3da] and 8)=8;
+    clrdisk(14+v,5);
+   end;
+    disk(14+v,5);
+    DELAY(200);
+
+    Bdisk(14+v-3,5);
+
+  repeat until readkey<>#0;
+
+  Writeln('Starting MS-DOS...');
+  repeat until readkey<>#0;
+
+ end.
+

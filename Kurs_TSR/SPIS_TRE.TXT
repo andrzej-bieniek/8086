@@ -1,0 +1,11 @@
+     MINI KURS PISANIA
+PROGRAMÓW TSR W ASEMBLERZE
+
+[polskie znaki w standardzie ISO Latin 2]
+
+0. Wstêp
+1. Podstawy jêzykowe naszych przyk³adowych programów TSR
+2. Przerwania w programach TSR, pamiêæ i zegar CMOS
+3. Usuwanie rezydenta z pamiêci i jakie s± z tym zwi±zane problemy
+4. Wady i zalety Multiplex Interrupt
+5. Wywo³ywanie przerwañ dosowych w czasie pracy TSR'a

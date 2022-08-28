@@ -1,0 +1,43 @@
+                MINI KURS PISANIA PROGRAMÓW TSR W ASEMBLERZE
+
+
+0. WSTÊP
+
+     Na  pocz±tku zapoznajmy siê z podstawowym pojêciem - czym w³a¶ciwie jest
+ten  TSR.  Otó¿  TSR  to  skrót  od Terminate and Stay Resident (ang.), czyli
+"Zakoñcz   i   pozostañ   rezydentem".   Mo¿na   te¿  siê  spotkaæ  z  innymi
+t³umaczeniami,  ale  w  sumie  chodzi  o program, który po oddaniu sterowania
+(czyli  po  powrocie  do  DOSu)  zostawia pewn± czê¶æ swojego kodu w pamiêci.
+Pojawia  siê  pytanie: tylko po co zagracaæ pamiêæ niepotrzebnymi programami,
+które  ju¿ wykona³y swoje zadanie ? Otó¿ TSR prócz sta³ej obecno¶ci w pamiêci
+komputera  mo¿e wykonywaæ pewne zadania w zale¿no¶ci od wyobra¼ni autora - na
+przyk³ad  po  przechwyceniu  przerwania  zegara,  kod TSRa bêd±cy ca³y czas w
+pamiêci  mo¿e  zaj±æ  siê wy¶wietlaniem aktualnego czasu w prawym górnym rogu
+ekranu,  gdy  podstawimy  swoj±  procedurê pod przerwanie klawiatury - mo¿emy
+zmieniaæ  kody znaków przekazywane na drodze klawiatura-edytor tekstu. Na tej
+zasadzie  dzia³aj±  liczne  programy  udostêpniaj±ce  kody polskich znaków na
+klawiaturze  i  ekranie.  I  tak  dalej,  przyk³ady  mo¿na mno¿yæ - driver do
+obs³ugi odtwarzacza kompaktów, TSR graj±cy w tle muzykê, zmieniaj±cy czcionkê
+na ekranie czy te¿ wiêkszy system, uaktywniany pewn± kombinacj± klawiszy, jak
+np. SideKick lub dowolny rezydentny kalkulator. Wszystkie wymienione programy
+maj±  jedn±  wspóln±  cechê  -  instaluj± siê rezydentnie w pamiêci (czyli s±
+programami TSR).
+
+     Wbrew  powszechnemu  przekonaniu pisanie programów rezydentnych nie jest
+jedynie  domen±  "rasowych"  programistów czy super-c00l-coderów, ka¿dy z nas
+pos³uguj±cy   siê   w   miarê   dobrze  asemblerem  i  dysponuj±cy  potrzebn±
+dokumentacj±  (jak  np.  spis  przerwañ  BIOSu  i  DOSu)  mo¿e  zabraæ siê za
+napisanie  TSRa.  Co  to  bêdzie  ? Na pocz±tku pewnie zegar, w miarê wzrostu
+do¶wiadczenia mo¿e z tego wyj¶æ dobry rezydentny edytor tekstów. Aha, jeszcze
+o  tym,  co nam bêdzie potrzebne: na pewno edytor tekstów (to chyba ka¿dy ma,
+wystarczy dobry edytor z Nortona Commandera lub Dos Navigatora, ale mo¿na te¿
+u¿ywaæ  bardziej  zaawansowanych  narzêdzi,  ja preferujê edytor o d¼wiêcznej
+nazwie:  bingo),  do  tego niezast±piony bêdzie asembler (tasm lub masm) oraz
+linker  (tlink lub link). W niektórych skomplikowanych przypadkach przyda siê
+te¿  util  o  nazwie:  exe2bin,  ale mo¿na siê bez niego obej¶æ. Ale do¶æ ju¿
+tego wstêpu, przyst±pmy do czê¶ci praktycznej.
+
+     Jeszcze  jedno:  wszystkie  przytoczone  opisy  funkcji  DOSu  i  innych
+przerwañ (oczywi¶cie po dokonaniu niezbêdnych skrótów) zosta³y zaczerpniête z
+ksi±¿ki  Andrzeja  Dudka  pod  tytu³em: "Jak pisaæ wirusy", wydanie pierwsze,
+Jelenia Góra 1993.

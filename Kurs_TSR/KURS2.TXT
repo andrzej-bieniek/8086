@@ -1,0 +1,218 @@
+                MINI KURS PISANIA PROGRAMÓW TSR W ASEMBLERZE
+
+2. PRZERWANIA W PROGRAMACH TSR, PAMIÊÆ I ZEGAR CMOS
+
+     W  poprzednich  odcinkach kursu dowiedzieli¶my siê, co to jest TSR i jak
+siê go instaluje w pamiêci. Przyszed³ czas na zaprzêgniêcie naszego rezydenta
+do  bardziej  konkretnych  zadañ,  dobrym  przyk³adem  niech bêdzie napisanie
+prostego  programu  instaluj±cego  siê  w  pamiêci  i  pokazuj±cego  aktualn±
+sekundê,  taka  ma³a  wprawka  przed pe³nym zegarem, który ka¿dy z was bêdzie
+móg³ spokojnie sam napisaæ po przeczytaniu tego odcinka.
+
+     Co  nam  tym  razem  bêdzie  potrzebne  ? Oczywi¶cie, przerwanie zegara,
+wykonywane  z  czêstotliwo¶ci±  18.2  Hz  (czyli oko³o 18 razy na sekundê), a
+dok³adnie:  1193181/65536  Hz.  Mo¿emy  "przechwyciæ"  to  przerwanie,  czyli
+podstawiæ   swoj±  w³asn±  procedurê,  któr±  komputer  bêdzie  wywo³ywaæ  ze
+wspomnian± czêstotliwo¶ci±. W naszej procedurze bêdziemy pobieraæ z komputera
+aktualny  czas i wy¶wietlaæ liczbê sekund w lewym górnym rogu ekranu. Pojawia
+siê  tylko  pytanie - po co sprawdzaæ czas a¿ 18 razy na sekundê, je¿eli mamy
+wy¶wietlaæ   tylko   sekundy,  które  siê  bêd±  zmieniaæ  co  18  przerwañ ?
+Najprostszym  rozwi±zaniem  na  oszczêdzenie czasu procesora jest sprawdzanie
+aktualnego  czasu  tylko  co  18  wywo³anie naszej procedury. Jednak¿e mo¿emy
+post±piæ  jeszcze  inaczej - wy¶wietlaæ sekundnik na ekranie tylko wtedy, gdy
+jego  wskazanie  jest  ró¿ne od poprzedniego. To nam oszczêdzi mocy procesora
+traconej  za  przez  ka¿d±  sekundê na wy¶wietlaniu tej samej liczby 18 razy.
+My  jednak  w programie przyk³adowym zrezygnujemy z takiej optymalizacji, aby
+nie zaciemniaæ kodu, ka¿dy mo¿e to sam poæwiczyæ. Jeszcze jedna dygresja - po
+dokonaniu   swoich   dzia³añ  nasza  procedura  musi  zwracaæ  sterowanie  do
+oryginalnej  (czyli  pod  adres,  który  odczytamy  w czasie instalowania siê
+naszego  TSRa,  dla  skrócenia  opisu  nazywa  siê czêsto ten adres "wektorem
+przerwania").
+
+     Teraz  opis  dwóch  przydatnych funkcji, które nam udostêpnia DOS (czyli
+przerwanie 21h):
+
+Funkcja 25h
+Nazwa:          Ustalanie adresu kodu obs³ugi przerwania
+Wywo³anie:      AH=25h
+                AL - numer przerwania
+                DS:DX - adres procedury obs³uguj±cej przerwanie
+Powrót:         Brak
+Opis:           Funkcja ustawia now± procedurê obs³ugi przerwania o numerze
+                podanym w AL. Adres procedury obs³ugi przerwania powinien byæ
+                przekazany w DS:DX.
+
+Funkcja 35h
+Nazwa:          Pytanie o adres kodu obs³ugi przerwania
+Wywo³anie:      AH=35h
+                AL - numer przerwania
+Powrót:         ES:BX - adres procedury obs³ugi przerwania
+Opis:           Funkcja zwraca adres procedury obs³ugi przerwania o numerze
+                podanym w AL.
+
+     Dobra,  mamy  ju¿  wiadomo¶ci  o  tym,  jak  przechwytywaæ przerwanie po
+zapamiêtaniu  adresu  oryginalnej  procedury obs³ugi. Pytanie: no to które to
+w³a¶ciwie  jest  przerwanie  zegarowe  ?  Otó¿ jest to przerwanie nr 8, czyli
+IRQ0.  Nale¿y  siê  jednak drobne wyja¶nienie: IRQ0 oznacza, ¿e do kontrolera
+przerwañ  (a  s±  takie dwa uk³ady na p³ycie g³ównej komputera) do linii nr 0
+przychodz± informacje od uk³adu zegarowego, który na t± liniê wystawia sygna³
+¿±dania  przerwania  w³a¶nie  18 razy na sekundê. Podobnie do IRQ0 pod³±czona
+jest  klawiatura,  IRQ5  czêsto  karta muzyczna i tak dalej. Numer przerwania
+obs³uguj±cego  liniê  IRQx  to  x+8,  czyli  przerwanie  zegarowe ma numer 8,
+przerwanie klawiatury - nr 9 i tak dalej. Drugim kontrolerem nie bêdziemy siê
+na  razie zajmowaæ, zaznaczê tylko, ¿e obs³uguje on przerwania IRQ8 do IRQ15,
+a numery przerwañ od drugiego kontrolera zaczynaj± siê dla zmy³ki od 40h.
+
+     Kolejna  sprawa: jak odczytaæ aktualn± sekundê ? Jest kilka sposobów, my
+skorzystamy  z  bezpo¶redniego dostêpu do zegara CMOS umieszczonego na p³ycie
+g³ównej  komputera. Jest on widziany w przestrzeni adresowej jako dwa kolejne
+porty:  o  numerze 70h oraz 71h, dostêpne dla programisty poprzez instrukcje:
+out  i  in.  Instrukcja  'out' s³u¿y do wysy³ania danych do portu, instrukcja
+'in'  do  czytania z portu. W naszym przypadku bêd± to instrukcje: out 70h,al
+oraz  in  al,71h. Pierwsz± z nich wy¶lemy do zegara CMOS numer komórki, która
+nas  interesuje (o tym dalej), a drug± odczytamy jej zawarto¶æ. Ca³y fragment
+kodu czytaj±cy aktualn± sekundê bêdzie w zwi±zku z tym wygl±da³ tak:
+
+  xor  al,al
+  out  70h,al
+  jmp  $+2
+  in   al,71h
+
+     Instrukcja  jmp  $+2  powoduje  drobne  opó¼nienie wymagane do poprawnej
+wspó³pracy  z  zegarem  CMOS,  natomiast xor al,al jest równowa¿ne mov al,0 -
+czyli  po  prostu  do  rejestru  AL wpisuje zero. Po wykonaniu wy¿ej podanego
+bloku  4  rozkazów otrzymamy aktualn± sekundê w AL w kodzie BCD, który nale¿y
+jeszcze  przekonwertowaæ  na kody dwóch znaków liczby. Jak to jest zrobione w
+praktyce ujrzycie za chwilê w listingu rezydenta. Jeszcze tylko trochê wiêcej
+informacji  o  uk³adzie  CMOS, w którym oprócz zegara zawarta jest te¿ pamiêæ
+przechowuj±ca   najwa¿niejsze   ustawienia  naszych  komputerów  (czyli  ca³±
+zawarto¶æ  SETUPu). Oto adresy i funkcje kolejnych komórek, do których mo¿emy
+siê odwo³ywaæ (po opisy szczegó³owe odsy³am do ksi±¿ek):
+
+0       aktualna sekunda zegara czasu rzeczywistego (RTC) w kodzie BCD
+1       sekunda ustawienia budzika w kodzie BCD
+2       aktualna minuta w BCD
+3       minuta ustawienia budzika w BCD
+4       aktualna godzina RTC w BCD
+5       godzina ustawienia budzika w BCD
+6       dzieñ tygodnia (1=niedziela,2=poniedzia³ek itd.)
+7       dzieñ miesi±ca w BCD
+8       miesi±c w BCD
+9       rok w BCD (ostatnie dwie cyfry)
+0ah     RTC rejestr stanu A
+0bh     RTC rejestr stanu B
+0ch     RTC rejestr stanu C
+0dh     RTC rejestr stanu D
+0eh     bajt stanu ustawiany przez POST
+0fh     powód wy³±czenia
+10h     typ stacji dysków w systemie
+11h     zarezerwowane
+12h     typ twardego dysku
+13h     zarezerwowane
+14h     bajt wyposa¿enia komputera
+
+     I  tak  dalej.  Jest  tych  komórek 256 i kogo bardziej interesuj±, mo¿e
+zawsze  zajrzeæ  do literatury (np. podanej ju¿ wcze¶niej ksi±¿ki: "Jak pisaæ
+wirusy"). Kolejna sprawa: jak wypisaæ warto¶æ na ekranie nie u¿ywaj±c do tego
+przerwania  DOSu  (u¿ywanie  przerwañ  w  naszej  procedurze rezydentnej jest
+bardzo  ryzykowne,  o  tym bêdzie powiedziane dok³adniej w dalszych czê¶ciach
+kursu)  ?  Otó¿  jest  sposób,  nale¿y  kody  znaków  do  wypisania "wcisn±æ"
+bezpo¶rednio  w  obszar pamiêci ekranu, na kartach VGA, CGA, EGA itp. zaczyna
+siê  ona  od  pocz±tku  segmentu B800h, natomiast na karcie Hercules (HGC) od
+B000h.  Pod  tymi  adresami  mamy  dostêp do kodu pierwszego znaku na ekranie
+(czyli tego w lewym górnym rogu), w nastêpnym bajcie le¿y atrybut tego znaku,
+dalej  kod  drugiego  znaku,  jego atrybut itd. Kolory znaków mo¿emy obliczyæ
+podstawiaj±c odpowiednie bity w bajcie atrybutów:
+
+nr bitu:    7 6 5 4 3 2 1 0
+znaczenie:  K R G B i r g b
+
+     K  to  blink,  czyli  migotanie  znaku  (znak  miga  gdy  bit K=1), i to
+intensity  -  jasno¶æ  znaku  (0=ciemniejszy,  1=ja¶niejszy),  RGB to kolejne
+sk³adowe  kolorów  t³a,  natomiast  rgb  to sk³adowe kolorów znaku. Przyk³ad:
+potrzebujemy  bajt  atrybutu  oznaczaj±cy jasnoczerwone znaki na czarnym tle,
+nie migaj±ce:
+
+nr bitu:    7 6 5 4 3 2 1 0
+znaczenie:  K R G B i r g b
+warto¶æ:    0 0 0 0 1 1 0 0
+            ³ ÀÄÅÄÙ ³ ÀÄÁÄÁÄczerwony
+znak nie ÄÄÄÙ   ³   Àjasny
+miga      t³o czarne
+
+     Czyli  wychodzi na to, ¿e poszukiwany atrybut znaku to 0ch. Mo¿na wpisaæ
+go  w  pamiêæ  ekranu  oddzielnie,  po wpisaniu kodu znaku, jednak my te dwie
+rzeczy  zrobimy jednocze¶nie - wpisuj±c od razu ca³e s³owo 16-bitowe rozkazem
+stosw,  umieszczaj±cym  warto¶æ rejestru AX pod adresem ES:DI i zwiêkszaj±cym
+DI  o 2 - tak, ¿e wskazuje od razu na nastêpny znak. Po uruchomieniu programu
+bêdziecie  mogli  siê  przekonaæ,  ¿e czas zawarty w zegarze CMOS spieszy siê
+nieznacznie  wzglêdem  czasu DOSowego (np. pokazywanego przez Dos Navigatora,
+Nortona  Commandera itp.), poniewa¿ przy uruchamianiu komputera DOS odczytuje
+zawarto¶æ  CMOSa  i trochê czasu mu zajmuje ustawienie swojego zegara - przez
+to  siê  spó¼nia.  Natomiast  po wy³±czeniu komputera zegar CMOS chodzi sobie
+jakby  nigdy  nic  -  jego  zasilanie jest podtrzymywane bateryjnie. Ale do¶æ
+glêdzenia, przyszed³ czas na listing:
+
+----------> Obci±æ <----------
+.model tiny
+.code
+.386
+org 100h
+
+Start:
+  jmp  Instaluj
+
+; tutaj bêd± nasze zmienne:
+staraproc dd 0               ; dd oznacza 4 bajty (tutaj o warto¶ci 0)
+
+NaszaProc:
+  push ax                    ; zapamiêtujemy warto¶ci u¿ywanych rejestrów
+  push bx
+  push di
+  push es
+  mov  ax,0b800h             ; B800h - segment pamiêci ekranu karty VGA
+  mov  es,ax
+  xor  di,di                 ; zerujemy DI - adres w pamiêci ekranu
+  xor  al,al                 ; AL=0 - komórka z aktualn± sekund± w BCD
+  out  70h,al                ; wysy³amy do zegara CMOS
+  jmp  $+2                   ; ma³e opó¼nienie
+  in   al,71h                ; odczytujemy wynik z zegara CMOS
+  mov  bl,al
+  and  bl,0fh                ; prawa po³ówka bajtu - prawa cyfra w BCD
+  add  bl,'0'                ; do tego dodajemy kod zera
+  shr  al,4                  ; lewa po³ówka bajtu - lewa cyfra w BCD
+  add  al,'0'                ; do tego te¿ dodajemy kod '0'
+  mov  ah,0ch                ; atrybut napisu - jasnoczerwony na czarnym tle
+  stosw                      ; i rzucamy na ekran pierwsz± cyfrê
+  mov  al,bl
+  stosw                      ; potem drug±
+  pop  es
+  pop  di
+  pop  bx
+  pop  ax
+  jmp  dword ptr cs:[staraproc]        ; skok do oryginalnej procedury
+
+; koniec czê¶ci rezydentnej
+
+Instaluj:
+  mov  ax,3508h              ; 35h: pobranie wektora przerwania
+  int  21h                   ; wynik wpad³ do ES:BX
+  mov  word ptr cs:[staraproc],bx      ; trzeba jeszcze go gdzies zapamietac
+  mov  word ptr cs:[staraproc +2],es
+  mov  ax,2508h              ; 25h: ustawienie wektora przerwania
+  mov  dx,offset NaszaProc   ; DS:DX - wektor naszej procedury
+  int  21h
+  mov  ah,9                  ; 09h: wydruk napisu na ekran
+  mov  dx,offset Napis
+  int  21h
+  mov  dx,offset Instaluj    ; do DX wpisujemy adres pierwszego bajtu,
+  int  27h                   ; który ma byæ zwolniony, wcze¶niejsze
+                             ; zostaj± w pamiêci na sta³e
+
+Napis  db 'Program zainstalowany w pamiêci.',13,10,'$'
+
+end Start
+----------> Obci±æ <----------
+
+     W  nastêpnym  odcinku  dowiemy  siê,  jak  naszego  rezydenta wyrzuciæ z
+pamiêci i do tego jeszcze kilka innych przydatnych rzeczy.

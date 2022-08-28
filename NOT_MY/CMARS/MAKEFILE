@@ -1,0 +1,117 @@
+.AUTODEPEND
+#
+# Notice this makefile has full debug turned on
+#
+#               *Local definitions
+
+#		*Translator Definitions*
+CC = bcc +cmars.cfg
+TASM = TASM /zi /ml /i$(INCLUDEPATH)
+TLIB = tlib
+TLINK = tlink
+LIBPATH = C:\bc45\LIB
+INCLUDEPATH = C:\bc45\INCLUDE
+
+
+#		*Implicit Rules*
+.asm.obj:
+  $(TASM) {$< }
+
+.c.obj:
+  $(CC) -c {$< }
+
+.cpp.obj:
+  $(CC) -c {$< }
+
+#		*List Macros*
+EXE_dependencies =  \
+cmars.obj \
+sintab.obj \
+camars.obj
+#		*Explicit Rules*
+all: cmars.exe
+
+sin.exe: cmars.cfg sin.c
+	$(CC) sin.c
+
+cmars.exe: cmars.cfg $(EXE_dependencies)
+  $(TLINK) /v/s/L$(LIBPATH) @&&|
+c0l.obj+
+camars.obj+
+sintab.obj+
+cmars.obj
+cmars.exe
+	#NO map file
+emu.lib+
+mathl.lib+
+cl.lib
+|
+
+clean:
+	del *.obj
+	del *.bak
+	del *.map
+	del *.cfg
+	del *.td
+	del *.tr
+
+#		*Individual File Dependencies*
+sintab.asm: sin.exe
+	sin
+
+
+camars.obj: camars.asm
+	$(TASM) camars.asm
+
+cmars.obj: cmars.cfg cmars.c
+	$(CC) -c cmars.c
+
+sintab.obj: sintab.asm
+	$(TASM) sintab.asm
+
+#		*Compiler Configuration File*
+cmars.cfg: makefile
+  copy &&|
+-ml
+-v
+-G
+-O
+-Og
+-Oe
+-Om
+-Ov
+-Ol
+-Ob
+-Op
+-Oi
+-Z
+-vi
+-w-ret
+-w-nci
+-w-inl
+-wpin
+-wamb
+-wamp
+-w-par
+-wasm
+-wcln
+-w-cpt
+-wdef
+-w-dup
+-w-pia
+-wsig
+-wnod
+-w-ill
+-w-sus
+-wstv
+-wucp
+-wuse
+-w-ext
+-w-ias
+-w-ibc
+-w-pre
+-w-nst
+-w-pro
+-I$(INCLUDEPATH)
+-L$(LIBPATH)
+| cmars.cfg

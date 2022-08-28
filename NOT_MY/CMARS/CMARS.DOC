@@ -1,0 +1,51 @@
+Hi,
+	This is a version of MARS that you can walk through.  You can 
+	also rotate your point of view in increments of 15 degrees and
+	it will show you the map from the new point of view and you
+	can walk along the new point of view.
+
+	Keys are:
+
+	H	move left
+	J	move backwards
+	K	move forwards
+	L	move right
+	A	Rotate Left
+	S	Rotate Right
+	X	quit
+	Q	quit
+
+
+	you will quickly notice that this program gives you a view 
+	through a fisheye lens, especially if you walk left or right.
+	I leave the distribution that way; the point of view covers
+	180 degrees which is why it looks fishy.  I suppose limiting 
+	the point of view to less than 180 degrees would help.  I used
+	a modified version of the circle routine given in Wilton to
+	do calculate the points to display, if anyone is interested
+	in the equations e-mail me at gclind01@ulkyvx.louisville.edu
+	and I'll type them in for you.
+
+	Files you should have:
+
+	cmars.c, cmars.h   C Driver code
+	camars.asm         Video code written in ASM
+	sin.c              Sin/Cos table generator
+	sintab.asm         Sin/cos tables
+	makefile           borland C 4.5 makefile
+
+
+	I'm indebted to the original author for fractal code and
+	generating maps, also parts of the display routines come from
+	the original author.  He was anonymous, however...  My
+	primary contribution was cleaning up his mess, making the 
+	routines callable from C, and enhanced display routines that
+	allow for the 3-d rotations.
+
+	This program uses 386 instructions and will not run on an
+	8086 or a 286.
+
+
+	David Lindauer,  gclind01@ulkyvx.louisville.edu
+
+	August 1995
