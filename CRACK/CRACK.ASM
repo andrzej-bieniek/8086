@@ -1,4 +1,6 @@
+; Crack for MASZYNISTKA written by M$(1998)
 ; Crack do programu MASZYNISTKA napisany przez M$(1998)
+
 .model tiny
 .data 
  ExeFile db 'MASZ.EXE',0
